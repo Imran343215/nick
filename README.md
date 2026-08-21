@@ -53,6 +53,25 @@ npm run seed --demo
 npm run dev
 ```
 
+## Store and Stripe setup
+
+Add these server-side environment variables in `.env.local` and Vercel:
+
+```dotenv
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-key
+CLOUDINARY_API_SECRET=your-cloudinary-secret
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_SITE_URL=https://your-vercel-domain.vercel.app
+```
+
+Create a Stripe webhook pointing to
+`https://your-domain.vercel.app/api/stripe/webhook` and enable the
+`checkout.session.completed` event. Sign in at `/admin`, choose **Manage store
+products**, upload a product image, and add the phone. Customers can browse
+`/store` and pay through Stripe Checkout.
+
 Open **http://localhost:3000** for the landing page and
 **http://localhost:3000/admin** for the query inbox.
 

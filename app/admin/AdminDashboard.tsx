@@ -110,6 +110,9 @@ export default function AdminDashboard() {
         {error && <div className="alert alert--error">{error}</div>}
 
         <div className="admin-toolbar">
+          <button className="btn btn--accent" onClick={() => router.push("/admin/products")}>
+            Manage store products
+          </button>
           <button className="btn btn--ghost" onClick={() => load()}>
             {loading ? "Loading..." : "Refresh"}
           </button>
