@@ -1,24 +1,26 @@
+import BrandIcon, { type IconName } from "@/components/BrandIcon";
+
 const contacts = [
   {
-    icon: "📞",
+    icon: "phone" as IconName,
     title: "Call us",
     value: "+44 7424 906280",
     href: "tel:+447424906280",
   },
   {
-    icon: "✉️",
+    icon: "mail" as IconName,
     title: "Email",
     value: "itechnickltd@gmail.com",
     href: "mailto:itechnickltd@gmail.com",
   },
   {
-    icon: "📍",
+    icon: "location" as IconName,
     title: "Visit the store",
     value: "140 Kilburn High Road, NW6 4JD, London, UK",
     href: "https://www.google.com/maps/search/?api=1&query=140+Kilburn+High+Road+NW6+4JD+London",
   },
   {
-    icon: "🕘",
+    icon: "clock" as IconName,
     title: "Opening hours",
     value: "Mon–Sat · 9am – 7pm",
     href: "#",
@@ -40,7 +42,7 @@ export default function Contact() {
         <div className="contact-grid">
           {contacts.map((c) => (
             <div className="contact-card" key={c.title}>
-              <div className="contact-card__icon">{c.icon}</div>
+              <div className="contact-card__icon"><BrandIcon name={c.icon} /></div>
               <div className="contact-card__title">{c.title}</div>
               <div className="contact-card__value">
                 <a href={c.href}>{c.value}</a>

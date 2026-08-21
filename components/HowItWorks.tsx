@@ -1,21 +1,23 @@
+import BrandIcon, { type IconName } from "@/components/BrandIcon";
+
 const steps = [
   {
-    icon: "📝",
+    icon: "note" as IconName,
     title: "Send a repair query",
     desc: "Tell us your device, model and what's wrong using the quote form.",
   },
   {
-    icon: "💬",
+    icon: "chat" as IconName,
     title: "Get a free quote",
     desc: "We reply within the hour with transparent, no-obligation pricing.",
   },
   {
-    icon: "🔧",
+    icon: "wrench" as IconName,
     title: "We fix it fast",
     desc: "Drop off your device and most repairs are completed within 24 hours.",
   },
   {
-    icon: "📦",
+    icon: "package" as IconName,
     title: "Track & pick up",
     desc: "Use your tracking ID anytime to follow the repair progress online.",
   },
@@ -35,7 +37,7 @@ export default function HowItWorks() {
         <div className="steps">
           {steps.map((step, index) => (
             <div className="step" key={index}>
-              <div className="step__icon">{step.icon}</div>
+              <div className="step__icon"><BrandIcon name={step.icon} /></div>
               <h3 className="step__title">{step.title}</h3>
               <p className="step__desc">{step.desc}</p>
             </div>

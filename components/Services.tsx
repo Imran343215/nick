@@ -1,5 +1,18 @@
 import { type ServiceShape } from "@/lib/services";
 import { formatPrice } from "@/lib/utils";
+import BrandIcon, { type IconName } from "@/components/BrandIcon";
+
+function serviceIcon(icon: string, category: string): IconName {
+  const icons: Record<string, IconName> = {
+    "🖥️": "screen",
+    "🔋": "battery",
+    "💧": "water",
+    "🔌": "port",
+    "📷": "camera",
+    "⚙️": "settings",
+  };
+  return icons[icon] ?? (category.toLowerCase().includes("software") ? "settings" : "wrench");
+}
 
 export default function Services({
   services,
@@ -27,7 +40,9 @@ export default function Services({
           <div className="services-grid">
             {services.map((service) => (
               <article className="service-card" key={service._id}>
-                <div className="service-card__icon">{service.icon}</div>
+                <div className="service-card__icon">
+                  <BrandIcon name={serviceIcon(service.icon, service.category)} />
+                </div>
                 <h3 className="service-card__name">{service.name}</h3>
                 <span className="service-card__cat">{service.category}</span>
                 <p className="service-card__desc">{service.description}</p>
