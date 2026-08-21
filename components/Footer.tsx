@@ -11,7 +11,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container footer__inner">
-        <span>© {year} PhoneFix Pro · All rights reserved</span>
+        <span>© {year} iTECHNICK LTD · All rights reserved</span>
         <ul className="footer__links">
           {footerLinks.map((link) => (
             <li key={link.href}>

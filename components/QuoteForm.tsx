@@ -69,7 +69,7 @@ export default function QuoteForm() {
             </div>
             <div className="field">
               <label htmlFor="q-phone">Phone</label>
-              <input id="q-phone" name="phone" required placeholder="+1 555 0100" />
+              <input id="q-phone" name="phone" required placeholder="+44 7424 906280" />
             </div>
             <div className="field">
               <label htmlFor="q-brand">Device brand</label>

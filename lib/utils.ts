@@ -9,7 +9,10 @@ export function generateTrackingId(prefix = "MRP"): string {
 }
 
 export function formatPrice(value: number): string {
-  return `$${value.toFixed(2)}`;
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+  }).format(value);
 }
 
 export function slugify(text: string): string {

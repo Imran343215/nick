@@ -2,20 +2,20 @@ const contacts = [
   {
     icon: "📞",
     title: "Call us",
-    value: "+1 (555) 010-2030",
-    href: "tel:+15550102030",
+    value: "+44 7424 906280",
+    href: "tel:+447424906280",
   },
   {
     icon: "✉️",
     title: "Email",
-    value: "hello@phonefixpro.example",
-    href: "mailto:hello@phonefixpro.example",
+    value: "itechnickltd@gmail.com",
+    href: "mailto:itechnickltd@gmail.com",
   },
   {
     icon: "📍",
     title: "Visit the store",
-    value: "128 Main Street, Unit 4, Springfield",
-    href: "#",
+    value: "140 Kilburn High Road, NW6 4JD, London, UK",
+    href: "https://www.google.com/maps/search/?api=1&query=140+Kilburn+High+Road+NW6+4JD+London",
   },
   {
     icon: "🕘",

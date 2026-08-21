@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatPrice } from "@/lib/utils";
 
 interface TrackUpdate {
   status: string;
@@ -100,7 +101,7 @@ export default function TrackRepair() {
             {result.price !== undefined && (
               <div className="track-result__row">
                 <span>Price</span>
-                <strong>${Number(result.price).toFixed(2)}</strong>
+                <strong>{formatPrice(Number(result.price))}</strong>
               </div>
             )}
             {result.etaDays !== undefined && (
