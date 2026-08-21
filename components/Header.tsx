@@ -17,8 +17,8 @@ export default function Header() {
     <header className="header">
       <div className="container nav">
         <div className="nav__brand">
-          <span className="nav__brand-icon">🔧</span>
-          iTECHNICK LTD
+          <span className="nav__brand-icon" aria-hidden="true">iT</span>
+          <span className="nav__brand-name">iTECHNICK <small>LTD</small></span>
         </div>
 
         <ul className={`nav__links${open ? " nav__links--open" : ""}`}>
