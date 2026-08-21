@@ -13,7 +13,7 @@ interface TrackResult {
   customerName: string;
   device: string;
   service: string;
-  price: number;
+  price?: number;
   status: string;
   statusDescription: string;
   etaDays: number;
@@ -57,8 +57,8 @@ export default function TrackRepair() {
           <div className="section__eyebrow">Track your repair</div>
           <h2 className="section__title">Check Repair Status</h2>
           <p className="section__lead">
-            Enter the tracking ID you received with your query to see where your
-            repair is right now.
+            Enter the tracking ID you received with your quote request or repair
+            order to see its current status.
           </p>
         </div>
 
@@ -97,14 +97,18 @@ export default function TrackRepair() {
               <span>Service</span>
               <strong>{result.service}</strong>
             </div>
-            <div className="track-result__row">
-              <span>Price</span>
-              <strong>${Number(result.price).toFixed(2)}</strong>
-            </div>
-            <div className="track-result__row">
-              <span>Est. completion</span>
-              <strong>{result.etaDays} day(s)</strong>
-            </div>
+            {result.price !== undefined && (
+              <div className="track-result__row">
+                <span>Price</span>
+                <strong>${Number(result.price).toFixed(2)}</strong>
+              </div>
+            )}
+            {result.etaDays !== undefined && (
+              <div className="track-result__row">
+                <span>Est. completion</span>
+                <strong>{result.etaDays} day(s)</strong>
+              </div>
+            )}
             <p style={{ marginTop: "0.75rem" }}>{result.statusDescription}</p>
 
             <div className="timeline">

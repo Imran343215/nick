@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import RepairQuery from "@/models/RepairQuery";
 import { generateTrackingId, clean, validateEmail } from "@/lib/utils";
+import { isAdminAuthed } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +121,13 @@ export async function GET(request: Request) {
     if (phone) filter.phone = phone;
 
     if (Object.keys(filter).length === 0) {
+      // Admin list — require the signed admin cookie.
+      if (!(await isAdminAuthed())) {
+        return NextResponse.json(
+          { ok: false, error: "Admin authentication required." },
+          { status: 401 }
+        );
+      }
       const all = await RepairQuery.find()
         .sort({ createdAt: -1 })
         .limit(200)
