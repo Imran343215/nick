@@ -20,6 +20,11 @@ type Booking = {
   pickupDate: string | null;
   status: string;
   createdAt: string | null;
+  addressLabel?: string;
+  addressLine: string;
+  addressCity: string;
+  addressPostcode: string;
+  repairMode?: string;
 };
 
 const STATUSES = ["new", "confirmed", "scheduled", "in_progress", "completed", "cancelled"];
@@ -104,6 +109,19 @@ export default function RepairBookingsManager() {
                   {row.customerPhone}
                 </small>
               </>
+            ),
+          },
+          {
+            key: "address",
+            header: "Address",
+            render: (row) => (
+              <small>
+                {row.repairMode === "store" && <em>Store pickup — </em>}
+                {row.addressLabel ? `${row.addressLabel}: ` : ""}
+                {row.addressLine}
+                <br />
+                {row.addressCity} {row.addressPostcode}
+              </small>
             ),
           },
           {
