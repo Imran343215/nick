@@ -4,6 +4,7 @@ export interface IProduct {
   name: string;
   slug: string;
   description: string;
+  category?: string;
   condition: "new" | "second-hand";
   price: number;
   currency: "gbp";
@@ -21,6 +22,7 @@ const ProductSchema = new Schema<IProduct>(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, index: true, trim: true },
     description: { type: String, required: true, trim: true },
+    category: { type: String, default: "", trim: true, index: true },
     condition: { type: String, enum: ["new", "second-hand"], required: true },
     price: { type: Number, required: true, min: 0 },
     currency: { type: String, enum: ["gbp"], default: "gbp" },

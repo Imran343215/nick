@@ -16,6 +16,8 @@ function serialize(order: Record<string, any>) {
     total: order.total,
     currency: order.currency,
     customerName: order.customerName,
+    shippingCarrier: order.shippingCarrier ?? "",
+    shippingNumber: order.shippingNumber ?? "",
     paymentStatus: order.paymentStatus,
     fulfillmentStatus: order.fulfillmentStatus,
     createdAt: order.createdAt,

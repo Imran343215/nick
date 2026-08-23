@@ -6,6 +6,7 @@ export type ProductShape = {
   name: string;
   slug: string;
   description: string;
+  category?: string;
   condition: "new" | "second-hand";
   price: number;
   currency: "gbp";
@@ -25,6 +26,7 @@ export function serializeProduct(product: Record<string, any>): ProductShape {
     price: product.price,
     currency: product.currency ?? "gbp",
     imageUrl: product.imageUrl,
+    category: product.category ?? "",
     stock: product.stock,
     active: product.active,
     featured: product.featured,

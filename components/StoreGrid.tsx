@@ -12,6 +12,9 @@ export default function StoreGrid({ products }: { products: ProductShape[] }) {
             <span className="product-card__condition">{product.condition === "new" ? "New" : "Second hand"}</span>
           </Link>
           <div className="product-card__body">
+            {product.category && (
+              <span className="product-card__category">{product.category}</span>
+            )}
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <div className="product-card__footer">

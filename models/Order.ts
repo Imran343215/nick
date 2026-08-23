@@ -12,6 +12,8 @@ export interface IOrder {
   customerName: string;
   customerEmail: string;
   shippingAddress?: string;
+  shippingCarrier?: string;
+  shippingNumber?: string;
   stripeSessionId: string;
   stripePaymentIntentId?: string;
   paymentStatus: "pending" | "paid" | "failed";
@@ -33,6 +35,8 @@ const OrderSchema = new Schema<IOrder>(
     customerName: { type: String, required: true, trim: true },
     customerEmail: { type: String, required: true, lowercase: true, trim: true },
     shippingAddress: { type: String, trim: true },
+    shippingCarrier: { type: String, trim: true },
+    shippingNumber: { type: String, trim: true },
     stripeSessionId: { type: String, required: true, unique: true, index: true },
     stripePaymentIntentId: { type: String },
     paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },

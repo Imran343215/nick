@@ -11,6 +11,8 @@ type Order = {
   total: number;
   currency: string;
   customerName: string;
+  shippingCarrier?: string;
+  shippingNumber?: string;
   paymentStatus: string;
   fulfillmentStatus: string;
   createdAt: string;
@@ -223,6 +225,18 @@ function OrderCard({
           <dd>{order.paymentStatus}</dd>
         </div>
       </dl>
+
+      {order.shippingCarrier && order.shippingNumber && (
+        <div className="order-card__shipping">
+          <div className="order-card__shipping-label">📦 Shipping tracking</div>
+          <span className="order-card__courier">{order.shippingCarrier}</span>
+          <code className="order-card__tracking">{order.shippingNumber}</code>
+          <span className="form__note">
+            Use this tracking number with {order.shippingCarrier} to follow your
+            delivery.
+          </span>
+        </div>
+      )}
 
       {canCancel && (
         <div className="order-card__actions">

@@ -113,6 +113,9 @@ export default function AdminDashboard() {
           <button className="btn btn--accent" onClick={() => router.push("/admin/products")}>
             Manage store products
           </button>
+          <button className="btn btn--accent" onClick={() => router.push("/admin/orders")}>
+            Manage orders
+          </button>
           <button className="btn btn--ghost" onClick={() => load()}>
             {loading ? "Loading..." : "Refresh"}
           </button>

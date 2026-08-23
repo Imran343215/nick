@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { isAdminAuthed } from "@/lib/auth";
 import { serializeProduct } from "@/lib/products";
 import Product from "@/models/Product";
+import Category from "@/models/Category";
 import { clean, slugify } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
     const name = clean(body.name);
     const description = clean(body.description);
     const imageUrl = clean(body.imageUrl);
+    const category = clean(body.category);
     const condition = body.condition === "second-hand" ? "second-hand" : "new";
     const price = Number(body.price);
     const stock = Number(body.stock);
@@ -43,12 +45,25 @@ export async function POST(request: Request) {
     }
 
     await connectDB();
+    if (category) {
+      // The admin form sends the category's display name; match by name with
+      // slug as a fallback so both formats are accepted.
+      const foundCategory = await Category.findOne({
+        $or: [{ name: category }, { slug: category }],
+      })
+        .lean()
+        .exec();
+      if (!foundCategory) {
+        return NextResponse.json({ ok: false, error: "Selected category does not exist." }, { status: 400 });
+      }
+    }
     const baseSlug = slugify(name) || `product-${Date.now()}`;
     const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
     const product = await Product.create({
       name,
       slug,
       description,
+      category,
       condition,
       price,
       currency: "gbp",
