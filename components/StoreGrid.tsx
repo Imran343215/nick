@@ -16,7 +16,9 @@ export default function StoreGrid({ products }: { products: ProductShape[] }) {
             <p>{product.description}</p>
             <div className="product-card__footer">
               <strong>{formatPrice(product.price)}</strong>
-              <Link href={`/store/${product.slug}`} className="btn btn--primary product-card__button">View item</Link>
+              <Link href={`/store/${product.slug}`} className="btn btn--primary product-card__button">
+                {product.stock > 0 ? "View item" : "Sold out"}
+              </Link>
             </div>
           </div>
         </article>

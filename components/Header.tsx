@@ -5,7 +5,7 @@ import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 
 const links = [
   { href: "#services", label: "Services" },
-  { href: "#store", label: "Store" },
+  { href: "/store", label: "Store" },
   { href: "/orders", label: "My order" },
   { href: "#how-it-works", label: "How It Works" },
   { href: "#quote", label: "Get a Quote" },

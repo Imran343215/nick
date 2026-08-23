@@ -14,7 +14,7 @@ function adminRequired() {
 export async function GET() {
   try {
     await connectDB();
-    const products = await Product.find({ active: true, stock: { $gt: 0 } })
+    const products = await Product.find({ active: true })
       .sort({ featured: -1, createdAt: -1 })
       .lean()
       .exec();
