@@ -5,7 +5,33 @@ import RepairBooking from "@/models/RepairBooking";
 
 export const dynamic = "force-dynamic";
 
-function serializeBooking(doc: Record<string, unknown>) {
+type BookingDocLike = {
+  _id: unknown;
+  bookingNumber?: string;
+  trackingId?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  brandName?: string;
+  deviceName?: string;
+  services?: unknown[];
+  subtotal?: number;
+  couponCode?: string;
+  couponDiscount?: number;
+  total?: number;
+  savings?: number;
+  addressLabel?: string;
+  addressLine?: string;
+  addressCity?: string;
+  addressPostcode?: string;
+  pickupDate?: Date | string | null;
+  repairMode?: string;
+  customMessage?: string;
+  status?: string;
+  createdAt?: Date | string | null;
+};
+
+function serializeBooking(doc: BookingDocLike) {
   return {
     _id: String(doc._id),
     bookingNumber: doc.bookingNumber as string,
@@ -25,11 +51,11 @@ function serializeBooking(doc: Record<string, unknown>) {
     addressLine: doc.addressLine as string,
     addressCity: doc.addressCity as string,
     addressPostcode: doc.addressPostcode as string,
-    pickupDate: doc.pickupDate ? new Date(doc.pickupDate as string).toISOString() : null,
+    pickupDate: doc.pickupDate ? new Date(doc.pickupDate).toISOString() : null,
     repairMode: doc.repairMode as string,
     customMessage: doc.customMessage as string | undefined,
     status: doc.status as string,
-    createdAt: doc.createdAt ? new Date(doc.createdAt as string).toISOString() : null,
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : null,
   };
 }
 

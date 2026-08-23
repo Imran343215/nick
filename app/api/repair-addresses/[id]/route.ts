@@ -8,7 +8,17 @@ export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ id: string }> };
 
-function serializeAddress(doc: Record<string, unknown>) {
+type AddressDocLike = {
+  _id: unknown;
+  label?: string;
+  line1?: string;
+  city?: string;
+  postcode?: string;
+  phone?: string;
+  isDefault?: boolean;
+};
+
+function serializeAddress(doc: AddressDocLike) {
   return {
     _id: String(doc._id),
     label: doc.label as string,

@@ -14,7 +14,21 @@ function bookingNumber(): string {
   return `RB-${random}`;
 }
 
-function serializeBooking(doc: Record<string, unknown>) {
+type BookingDocLike = {
+  _id: unknown;
+  bookingNumber?: string;
+  trackingId?: string;
+  customerName?: string;
+  customerEmail?: string;
+  brandName?: string;
+  deviceName?: string;
+  total?: number;
+  status?: string;
+  pickupDate?: Date | string | null;
+  createdAt?: Date | string | null;
+};
+
+function serializeBooking(doc: BookingDocLike) {
   return {
     _id: String(doc._id),
     bookingNumber: doc.bookingNumber as string,
@@ -25,8 +39,8 @@ function serializeBooking(doc: Record<string, unknown>) {
     deviceName: doc.deviceName as string,
     total: doc.total as number,
     status: doc.status as string,
-    pickupDate: doc.pickupDate ? new Date(doc.pickupDate as string).toISOString() : null,
-    createdAt: doc.createdAt ? new Date(doc.createdAt as string).toISOString() : null,
+    pickupDate: doc.pickupDate ? new Date(doc.pickupDate).toISOString() : null,
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : null,
   };
 }
 

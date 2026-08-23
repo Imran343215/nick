@@ -8,16 +8,27 @@ export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ id: string }> };
 
-function serializeCoupon(doc: Record<string, unknown>) {
+type CouponDocLike = {
+  _id: unknown;
+  code: string;
+  discountType: string;
+  value: number;
+  minSubtotal?: number | null;
+  maxDiscount?: number | null;
+  status: string;
+  expiresAt?: Date | string | null;
+};
+
+function serializeCoupon(doc: CouponDocLike) {
   return {
     _id: String(doc._id),
-    code: doc.code as string,
-    discountType: doc.discountType as string,
-    value: doc.value as number,
-    minSubtotal: doc.minSubtotal as number | undefined,
-    maxDiscount: doc.maxDiscount as number | undefined,
-    status: doc.status as string,
-    expiresAt: doc.expiresAt ? new Date(doc.expiresAt as string).toISOString() : null,
+    code: doc.code,
+    discountType: doc.discountType,
+    value: doc.value,
+    minSubtotal: doc.minSubtotal ?? undefined,
+    maxDiscount: doc.maxDiscount ?? undefined,
+    status: doc.status,
+    expiresAt: doc.expiresAt ? new Date(doc.expiresAt).toISOString() : null,
   };
 }
 
