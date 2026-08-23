@@ -25,9 +25,11 @@ export async function POST(request: Request) {
         {
           $set: {
             paymentStatus: "paid",
+            clerkUserId: metadata.clerkUserId,
             stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : undefined,
           },
           $setOnInsert: {
+            clerkUserId: metadata.clerkUserId,
             productId: metadata.productId,
             productName: metadata.productName ?? "Product",
             quantity: 1,

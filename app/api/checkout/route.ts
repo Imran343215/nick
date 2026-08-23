@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import Order from "@/models/Order";
 import { clean, validateEmail } from "@/lib/utils";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,19 @@ export async function POST(request: Request) {
   }
 
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ ok: false, error: "Please sign in before buying." }, { status: 401 });
+    }
+    const user = await currentUser();
+    const customerEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+    if (!user || !customerEmail) {
+      return NextResponse.json({ ok: false, error: "Your account needs a verified email before buying." }, { status: 400 });
+    }
+
     const body = await request.json();
     const productId = clean(body.productId);
-    const customerName = clean(body.customerName);
-    const customerEmail = clean(body.customerEmail).toLowerCase();
+    const customerName = user.fullName || user.firstName || customerEmail.split("@")[0];
     const shippingAddress = clean(body.shippingAddress);
     if (!productId || !customerName || !validateEmail(customerEmail)) {
       return NextResponse.json({ ok: false, error: "Name, valid email, and product are required." }, { status: 400 });
@@ -48,6 +58,7 @@ export async function POST(request: Request) {
           quantity: 1,
         }],
         metadata: {
+          clerkUserId: userId,
           productId: String(product._id),
           productName: product.name,
           unitPrice: String(product.price),
@@ -59,6 +70,7 @@ export async function POST(request: Request) {
         cancel_url: `${origin}/store/${product.slug}/order?cancelled=1`,
       });
       await Order.create({
+        clerkUserId: userId,
         productId: product._id,
         productName: product.name,
         quantity: 1,
