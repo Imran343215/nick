@@ -6,8 +6,9 @@ const MONGODB_URI =
 
 const CONNECTION_OPTIONS = {
   bufferCommands: false,
-  connectTimeoutMS: 5000, // time to establish a TCP connection
-  serverSelectionTimeoutMS: 8000, // how long to wait for a usable MongoDB node
+  connectTimeoutMS: 10000, // time to establish a TCP connection (increased from 5000)
+  serverSelectionTimeoutMS: 15000, // how long to wait for a usable MongoDB node (increased from 8000)
+  socketTimeoutMS: 45000, // socket timeout (added)
 };
 
 type Cached = {

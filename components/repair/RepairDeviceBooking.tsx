@@ -43,8 +43,30 @@ export default function RepairDeviceBooking({
   services: RepairServiceShape[];
 }) {
   const router = useRouter();
-  const [cart, setCart] = useState<RepairCart | null>(null);
-  const [couponInput, setCouponInput] = useState("");
+  
+  // Initialize cart immediately with data from props or sessionStorage
+  const initialCart = useMemo(() => {
+    try {
+      const existing = loadCart(brand.slug, device.slug);
+      if (existing) {
+        return existing;
+      }
+    } catch (error) {
+      console.error("Error loading cart from sessionStorage:", error);
+    }
+    return {
+      brandSlug: brand.slug,
+      brandName: brand.name,
+      deviceSlug: device.slug,
+      deviceName: device.name,
+      deviceImage: device.image,
+      selected: [],
+      couponDiscount: 0,
+    };
+  }, [brand.slug, brand.name, device.slug, device.name, device.image]);
+
+  const [cart, setCart] = useState<RepairCart>(initialCart);
+  const [couponInput, setCouponInput] = useState(initialCart.couponCode ?? "");
   const [couponError, setCouponError] = useState("");
   const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -52,11 +74,26 @@ export default function RepairDeviceBooking({
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
-    const existing = loadCart(brand.slug, device.slug);
-    if (existing) {
-      setCart(existing);
-      setCouponInput(existing.couponCode ?? "");
-    } else {
+    // Update cart if brand/device changes (navigation)
+    try {
+      const existing = loadCart(brand.slug, device.slug);
+      if (existing) {
+        setCart(existing);
+        setCouponInput(existing.couponCode ?? "");
+      } else {
+        setCart({
+          brandSlug: brand.slug,
+          brandName: brand.name,
+          deviceSlug: device.slug,
+          deviceName: device.name,
+          deviceImage: device.image,
+          selected: [],
+          couponDiscount: 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating cart:", error);
+      // Set default cart on error
       setCart({
         brandSlug: brand.slug,
         brandName: brand.name,
@@ -67,7 +104,7 @@ export default function RepairDeviceBooking({
         couponDiscount: 0,
       });
     }
-  }, [brand, device]);
+  }, [brand.slug, brand.name, device.slug, device.name, device.image]);
 
   useEffect(() => {
     if (cart) saveCart(cart);
@@ -125,10 +162,6 @@ export default function RepairDeviceBooking({
     router.push(`/repair/${brand.slug}/${device.slug}/checkout`);
   }
 
-  if (!cart) {
-    return <div className="empty-note">Loading repair options...</div>;
-  }
-
   return (
     <div className="repair-booking">
       <nav className="repair-breadcrumbs">
@@ -169,7 +202,7 @@ export default function RepairDeviceBooking({
           </div>
 
           <h2 className="repair-section-title">Select repair services</h2>
-          {services.length === 0 ? (
+          {!services || services.length === 0 ? (
             <div className="empty-note">No repair services listed for this device yet.</div>
           ) : (
             <div className="repair-service-grid">

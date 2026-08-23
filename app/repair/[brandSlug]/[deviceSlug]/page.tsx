@@ -16,12 +16,16 @@ export default async function RepairDevicePage({
   params: Promise<{ brandSlug: string; deviceSlug: string }>;
 }) {
   const { brandSlug, deviceSlug } = await params;
+  
+  // Fetch brand first to get the brand ID
   const brand = await fetchActiveBrandBySlug(brandSlug);
   if (!brand) notFound();
 
+  // Fetch device
   const device = await fetchActiveDeviceBySlug(brand._id, deviceSlug);
   if (!device) notFound();
 
+  // Fetch services for the specific device
   const services = await fetchActiveServicesForDevice(device._id);
 
   return (
@@ -30,7 +34,7 @@ export default async function RepairDevicePage({
       <main>
         <section className="section repair-page repair-page--booking">
           <div className="container repair-container">
-            <RepairDeviceBooking brand={brand} device={device} services={services} />
+            <RepairDeviceBooking brand={brand} device={device} services={services || []} />
           </div>
         </section>
       </main>
