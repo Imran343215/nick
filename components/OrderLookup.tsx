@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatPrice } from "@/lib/utils";
+import { courierTrackerUrl, formatPrice } from "@/lib/utils";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 
 type Order = {
@@ -194,6 +194,10 @@ function OrderCard({
   const orderedAt = order.createdAt
     ? new Date(order.createdAt).toLocaleDateString()
     : "";
+  const trackingUrl = courierTrackerUrl(
+    order.shippingCarrier,
+    order.shippingNumber
+  );
 
   return (
     <article className="order-card">
@@ -226,17 +230,40 @@ function OrderCard({
         </div>
       </dl>
 
-      {order.shippingCarrier && order.shippingNumber && (
+      {order.shippingNumber ? (
         <div className="order-card__shipping">
           <div className="order-card__shipping-label">📦 Shipping tracking</div>
-          <span className="order-card__courier">{order.shippingCarrier}</span>
+          {order.shippingCarrier && (
+            <span className="order-card__courier">{order.shippingCarrier}</span>
+          )}
           <code className="order-card__tracking">{order.shippingNumber}</code>
-          <span className="form__note">
-            Use this tracking number with {order.shippingCarrier} to follow your
-            delivery.
-          </span>
+          <div className="order-card__track-actions">
+            {trackingUrl && order.shippingCarrier && (
+              <a
+                href={trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn--primary order-card__track-link"
+              >
+                Track package on {order.shippingCarrier} ↗
+              </a>
+            )}
+            <span className="form__note">
+              {trackingUrl && order.shippingCarrier
+                ? "Opens the courier's tracking page with your number."
+                : `Use this number with ${
+                    order.shippingCarrier || "your courier"
+                  } to follow your delivery.`}
+            </span>
+          </div>
         </div>
-      )}
+      ) : ["shipped", "completed"].includes(order.fulfillmentStatus) ? (
+        <div className="order-card__shipping order-card__shipping--pending">
+          <div className="order-card__shipping-label">📦 Order dispatched</div>
+          Your order is on its way — the courier and tracking number will appear
+          here once available.
+        </div>
+      ) : null}
 
       {canCancel && (
         <div className="order-card__actions">

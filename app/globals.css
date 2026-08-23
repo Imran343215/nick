@@ -1176,8 +1176,8 @@ img {
 }
 
 .order-card__tracking {
-  display: block;
-  margin: 0.1rem 0 0.35rem;
+  display: inline-block;
+  margin: 0.1rem 0 0.6rem;
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -1185,6 +1185,31 @@ img {
   padding: 0.35rem 0.7rem;
   border-radius: 8px;
   background: rgba(52, 211, 153, 0.12);
+  user-select: all;
+}
+
+.order-card__track-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.order-card__track-link {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.order-card__shipping--pending {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.order-card__shipping--pending .order-card__shipping-label {
+  color: var(--text);
 }
 
 .track-result__row {
