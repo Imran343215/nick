@@ -31,6 +31,8 @@ const FAQS = [
   },
 ];
 
+const PROMO_CODE = "RPR50";
+
 export default function RepairDeviceBooking({
   brand,
   device,
@@ -136,6 +138,25 @@ export default function RepairDeviceBooking({
         <span>/</span>
         <span>{device.name}</span>
       </nav>
+
+      <div className="repair-promo-banner">
+        <div className="repair-promo-banner__content">
+          <div className="repair-promo-banner__title">Up to 50%* OFF on Mobile Repair</div>
+          <div className="repair-promo-banner__code">Use Code <strong>{PROMO_CODE}</strong></div>
+        </div>
+        <button 
+          type="button"
+          className="repair-promo-banner__button"
+          onClick={() => {
+            setCouponInput(PROMO_CODE);
+            if (couponInput !== PROMO_CODE) {
+              applyCoupon();
+            }
+          }}
+        >
+          Apply Code
+        </button>
+      </div>
 
       <div className="repair-booking__layout">
         <div className="repair-booking__main">

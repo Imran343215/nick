@@ -1818,6 +1818,705 @@ img {
   text-align: center;
 }
 
+/* ---------- Repair Booking Page ---------- */
+.repair-page--booking {
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(15, 21, 39, 0.6) 100%);
+}
+
+.repair-container {
+  max-width: 1200px;
+}
+
+.repair-booking {
+  max-width: 100%;
+}
+
+.repair-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.repair-breadcrumbs a {
+  color: var(--accent);
+  transition: color 0.2s ease;
+}
+
+.repair-breadcrumbs a:hover {
+  color: var(--accent-strong);
+}
+
+.repair-booking__layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.repair-booking__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.repair-device-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.repair-device-hero img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--bg);
+  padding: 0.5rem;
+}
+
+.repair-device-hero__brand {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+}
+
+.repair-device-hero h1 {
+  font-family: var(--display);
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.repair-section-title {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  margin-bottom: 1.2rem;
+  color: var(--text);
+}
+
+.repair-service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.repair-service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1.2rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.repair-service-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 159, 28, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.repair-service-card--selected {
+  border-color: var(--repair);
+  background: rgba(59, 187, 164, 0.08);
+}
+
+.repair-service-card__icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+}
+
+.repair-service-card h3 {
+  font-size: 1.05rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.repair-service-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.repair-service-card__price strong {
+  color: var(--cta);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.repair-service-card__time {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.btn--repair {
+  background: var(--repair);
+  color: #0a1f1a;
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 187, 164, 0.3);
+}
+
+.btn--repair:hover {
+  background: var(--repair-dark);
+  box-shadow: 0 6px 16px rgba(59, 187, 164, 0.4);
+}
+
+.btn--repair-remove {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.btn--repair-remove:hover {
+  background: rgba(248, 113, 113, 0.25);
+  border-color: var(--danger);
+}
+
+.btn--repair-outline {
+  background: transparent;
+  color: var(--repair);
+  border: 1px solid var(--repair);
+}
+
+.btn--repair-outline:hover {
+  background: rgba(59, 187, 164, 0.1);
+}
+
+.repair-custom-bar {
+  padding: 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.repair-custom-bar p {
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: var(--text);
+}
+
+.repair-custom-bar textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.repair-custom-bar textarea:focus {
+  outline: none;
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 3px rgba(255, 159, 28, 0.15);
+}
+
+.repair-faq {
+  padding: 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.repair-faq__item {
+  border-bottom: 1px solid var(--border);
+}
+
+.repair-faq__item:last-child {
+  border-bottom: none;
+}
+
+.repair-faq__question {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.repair-faq__question:hover {
+  color: var(--accent);
+}
+
+.repair-faq__question span {
+  font-size: 1.3rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.repair-faq__answer {
+  padding-bottom: 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ---------- Repair Price Summary ---------- */
+.repair-price-summary {
+  position: sticky;
+  top: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.repair-price-summary__mode {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: rgba(59, 187, 164, 0.15);
+  color: var(--repair);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 1rem;
+}
+
+.repair-price-summary h2 {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  margin-bottom: 1.2rem;
+}
+
+.repair-price-summary__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.repair-price-summary__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.repair-price-summary__item-name {
+  flex: 1;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.repair-price-summary__item-price {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.repair-price-summary__discount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem;
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.repair-price-summary__discount-label {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.repair-price-summary__discount-value {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.repair-price-summary__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.repair-price-summary__total strong {
+  color: var(--cta);
+  font-size: 1.4rem;
+}
+
+.repair-price-summary__savings {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--success);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.repair-price-summary__coupon {
+  margin-bottom: 1rem;
+}
+
+.repair-price-summary__coupon-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.repair-price-summary__coupon-input input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.repair-price-summary__coupon-input input:focus {
+  outline: none;
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 3px rgba(255, 159, 28, 0.15);
+}
+
+.repair-price-summary__coupon-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+
+.repair-price-summary__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.repair-price-summary__terms input {
+  accent-color: var(--repair);
+  margin-top: 0.2rem;
+}
+
+.repair-price-summary__terms a {
+  color: var(--accent);
+}
+
+.repair-price-summary__terms a:hover {
+  text-decoration: underline;
+}
+
+.repair-price-summary__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  background: rgba(15, 21, 39, 0.5);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.repair-price-summary__stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--repair);
+  font-weight: 600;
+}
+
+.repair-price-summary__safe {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+.repair-price-summary__safe svg {
+  width: 16px;
+  height: 16px;
+  color: var(--success);
+}
+
+/* ---------- Repair Checkout ---------- */
+.repair-checkout-step {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.repair-checkout-step__head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.repair-checkout-step__num {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  background: var(--repair);
+  color: #0a1f1a;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.repair-checkout-step__head h2 {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.repair-checkout-guest {
+  margin-bottom: 1.5rem;
+}
+
+.repair-guest-form {
+  margin-top: 1rem;
+}
+
+.repair-add-address {
+  margin-bottom: 1rem;
+}
+
+.repair-address-form {
+  margin-bottom: 1.5rem;
+}
+
+.repair-address-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.repair-address-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.repair-address-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.repair-address-card input[type="radio"] {
+  accent-color: var(--repair);
+  margin-top: 0.3rem;
+}
+
+.repair-address-card strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.repair-address-card p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.repair-address-card small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.repair-address-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.repair-address-selected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(59, 187, 164, 0.08);
+  border: 1px solid var(--repair);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.repair-address-selected__info strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  color: var(--repair);
+}
+
+.repair-address-selected__info p {
+  color: var(--text);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.repair-address-selected__info small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.repair-address-selected__edit {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.repair-pickup-slots {
+  display: flex;
+  gap: 0.8rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.repair-pickup-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 80px;
+  padding: 0.8rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.repair-pickup-slot:hover {
+  border-color: rgba(59, 187, 164, 0.4);
+  transform: translateY(-2px);
+}
+
+.repair-pickup-slot--active {
+  background: var(--repair);
+  border-color: var(--repair);
+  color: #0a1f1a;
+}
+
+.repair-pickup-slot--active .repair-pickup-slot__label,
+.repair-pickup-slot--active .repair-pickup-slot__day {
+  color: #0a1f1a;
+}
+
+.repair-pickup-slot__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.repair-pickup-slot__date {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.repair-pickup-slot__day {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* ---------- Promotional Banner ---------- */
+.repair-promo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 159, 28, 0.15), rgba(255, 209, 102, 0.08));
+  border: 1px solid rgba(255, 159, 28, 0.3);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+}
+
+.repair-promo-banner__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.repair-promo-banner__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.repair-promo-banner__code {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.repair-promo-banner__code strong {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.repair-promo-banner__button {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  background: var(--accent);
+  color: #1a1204;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.repair-promo-banner__button:hover {
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 960px) {
   .admin-shell {
     grid-template-columns: 1fr;
@@ -1840,6 +2539,28 @@ img {
   .repair-service-item__price {
     grid-column: 2;
     text-align: left;
+  }
+
+  .repair-booking__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-price-summary {
+    position: static;
+  }
+
+  .repair-device-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .repair-service-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-promo-banner {
+    flex-direction: column;
+    text-align: center;
   }
 }
 

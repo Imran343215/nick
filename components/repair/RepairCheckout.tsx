@@ -254,13 +254,17 @@ export default function RepairCheckout({
         <span>Checkout</span>
       </nav>
 
+      <h1 style={{ fontFamily: "var(--display)", fontSize: "2rem", marginBottom: "1.5rem" }}>
+        You are almost done!
+      </h1>
+
       <div className="repair-booking__layout">
         <div className="repair-booking__main">
           {error && <div className="alert alert--error">{error}</div>}
 
           <section className="repair-checkout-step">
             <div className="repair-checkout-step__head">
-              <span className="repair-checkout-step__num">1</span>
+              <span className="repair-checkout-step__num">✓</span>
               <h2>Address</h2>
             </div>
 
@@ -403,6 +407,31 @@ export default function RepairCheckout({
                       Save address
                     </button>
                   </form>
+                )}
+
+                {selectedAddressId && addresses.length > 0 && !showAddressForm && (
+                  <div className="repair-address-selected">
+                    {(() => {
+                      const addr = addresses.find((a) => a._id === selectedAddressId);
+                      if (!addr) return null;
+                      return (
+                        <>
+                          <div className="repair-address-selected__info">
+                            <strong>{addr.label}</strong>
+                            <p>{addr.line1}, {addr.city} {addr.postcode}</p>
+                            <small>{addr.phone}</small>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn--ghost repair-address-selected__edit"
+                            onClick={() => setShowAddressForm(true)}
+                          >
+                            Edit
+                          </button>
+                        </>
+                      );
+                    })()}
+                  </div>
                 )}
 
                 <ul className="repair-address-list">

@@ -51,44 +51,57 @@ export default function RepairPriceSummary({
   repairMode = "home",
 }: Props) {
   return (
-    <aside className="repair-summary">
-      <div className="repair-summary__mode">
-        Mode: <strong>{repairMode === "home" ? "Repair at Home" : "Repair at Store"}</strong>
+    <aside className="repair-price-summary">
+      <div className="repair-price-summary__mode">
+        Mode: {repairMode === "home" ? "Repair at Home" : "Repair at Store"}
       </div>
-      <h2 className="repair-summary__title">Price Summary</h2>
+      <h2>Price Summary</h2>
 
       {selected.length === 0 ? (
-        <p className="repair-summary__empty">Add repair services to see your summary.</p>
+        <p className="empty-note">Add repair services to see your summary.</p>
       ) : (
-        <ol className="repair-summary__list">
-          {selected.map((item, index) => (
-            <li key={item.serviceId}>
-              <span className="repair-summary__index">{index + 1}</span>
-              <div className="repair-summary__line">
-                <span className="repair-summary__item-name">
-                  {brandName} {deviceName} {item.name.toUpperCase()}
-                </span>
-                <span className="repair-summary__item-price">
-                  {item.discountPrice != null && item.discountPrice < item.price && (
-                    <span className="price-strike">{formatPrice(item.price)}</span>
-                  )}
-                  {formatPrice(item.lineTotal)}
-                </span>
-              </div>
-            </li>
+        <div className="repair-price-summary__items">
+          {selected.map((item) => (
+            <div key={item.serviceId} className="repair-price-summary__item">
+              <span className="repair-price-summary__item-name">
+                {brandName} {deviceName} {item.name.toUpperCase()}
+              </span>
+              <span className="repair-price-summary__item-price">
+                {item.discountPrice != null && item.discountPrice < item.price && (
+                  <span className="price-strike">{formatPrice(item.price)}</span>
+                )}
+                {formatPrice(item.lineTotal)}
+              </span>
+            </div>
           ))}
-        </ol>
+        </div>
+      )}
+
+      {couponDiscount > 0 && (
+        <div className="repair-price-summary__discount">
+          <span className="repair-price-summary__discount-label">Discount</span>
+          <span className="repair-price-summary__discount-value">−{formatPrice(couponDiscount)}</span>
+        </div>
+      )}
+
+      <div className="repair-price-summary__total">
+        <span>Total</span>
+        <strong>{formatPrice(total)}</strong>
+      </div>
+
+      {savings > 0 && (
+        <div className="repair-price-summary__savings">
+          You have saved {formatPrice(savings)}
+        </div>
       )}
 
       {showCoupon && (
-        <div className="repair-summary__coupon">
-          <label htmlFor="repair-coupon">Apply Coupon</label>
-          <div className="repair-summary__coupon-row">
+        <div className="repair-price-summary__coupon">
+          <div className="repair-price-summary__coupon-input">
             <input
-              id="repair-coupon"
               value={couponInput}
               onChange={(e) => onCouponInputChange(e.target.value)}
-              placeholder="Enter code"
+              placeholder="Apply Coupons"
             />
             <button
               type="button"
@@ -99,66 +112,46 @@ export default function RepairPriceSummary({
               {applyingCoupon ? "..." : "Apply"}
             </button>
           </div>
-          {couponCode && couponDiscount > 0 && (
-            <p className="repair-summary__coupon-applied">
-              {couponCode} applied (−{formatPrice(couponDiscount)})
-            </p>
-          )}
-          {couponError && <p className="repair-summary__coupon-error">{couponError}</p>}
+          {couponError && <p className="repair-price-summary__coupon-error">{couponError}</p>}
         </div>
       )}
 
-      <dl className="repair-summary__totals">
-        <div>
-          <dt>Subtotal</dt>
-          <dd>{formatPrice(subtotal)}</dd>
+      <div className="repair-price-summary__stats">
+        <div className="repair-price-summary__stat">
+          <strong>46K+</strong> Device Repaired
         </div>
-        {couponDiscount > 0 && (
-          <div className="repair-summary__discount-row">
-            <dt>Coupon discount</dt>
-            <dd>−{formatPrice(couponDiscount)}</dd>
-          </div>
-        )}
-        <div className="repair-summary__total-row">
-          <dt>Total</dt>
-          <dd>{formatPrice(total)}</dd>
+        <div className="repair-price-summary__stat">
+          <strong>4.3+</strong> Rated Products
         </div>
-      </dl>
+      </div>
 
-      {savings > 0 && (
-        <div className="repair-summary__saved">You have saved {formatPrice(savings)}</div>
-      )}
+      <div className="repair-price-summary__safe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Your payment is 100% safe with us
+      </div>
 
       {showTerms && (
-        <label className="repair-summary__terms check-label">
+        <label className="repair-price-summary__terms">
           <input
             type="checkbox"
             checked={agreedToTerms}
             onChange={(e) => onAgreedChange(e.target.checked)}
           />
-          I agree to the Terms and Conditions
+          I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
         </label>
       )}
 
       <button
         type="button"
-        className="btn btn--repair btn--repair-full"
+        className="btn btn--repair"
         disabled={actionDisabled || selected.length === 0}
         onClick={onAction}
+        style={{ width: "100%" }}
       >
         {actionLabel}
       </button>
-
-      <div className="repair-summary__trust">
-        <div>
-          <strong>46K+</strong>
-          <span>Devices Repaired</span>
-        </div>
-        <div>
-          <strong>4.3+</strong>
-          <span>Rated Service</span>
-        </div>
-      </div>
     </aside>
   );
 }
