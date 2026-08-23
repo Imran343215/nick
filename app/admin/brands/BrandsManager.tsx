@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
+import Modal from "@/components/admin/Modal";
 import type { BrandShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
 
@@ -25,6 +26,7 @@ export default function BrandsManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   async function load() {
     const res = await fetch("/api/admin/brands");
@@ -46,6 +48,16 @@ export default function BrandsManager() {
     setSlugTouched(false);
   }
 
+  function openAdd() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function closeModal() {
+    setShowForm(false);
+    resetForm();
+  }
+
   function startEdit(brand: BrandShape) {
     setEditingId(brand._id);
     setForm({
@@ -57,7 +69,7 @@ export default function BrandsManager() {
       order: String(brand.order),
     });
     setSlugTouched(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowForm(true);
   }
 
   async function handleUpload(file: File) {
@@ -108,6 +120,7 @@ export default function BrandsManager() {
       setBrands((current) => [...current, data.brand]);
     }
     resetForm();
+    setShowForm(false);
   }
 
   async function remove(id: string) {
@@ -125,10 +138,22 @@ export default function BrandsManager() {
       title="Brands"
       lead="Manage phone brands shown on the public repair catalog."
     >
-      {error && <div className="alert alert--error">{error}</div>}
+      <div className="admin-toolbar admin-toolbar--compact">
+        <button type="button" className="btn btn--primary" onClick={openAdd}>
+          + Add brand
+        </button>
+        <span className="form__note">{brands.length} total</span>
+      </div>
 
-      <form className="form-card admin-form-card" onSubmit={handleSubmit}>
-        <h2 className="admin-card-title">{editingId ? "Edit brand" : "Add brand"}</h2>
+      {error && !showForm && <div className="alert alert--error">{error}</div>}
+
+      <Modal
+        open={showForm}
+        title={editingId ? "Edit brand" : "Add brand"}
+        onClose={closeModal}
+      >
+        {error && showForm && <div className="alert alert--error">{error}</div>}
+        <form className="form-card admin-form-card" onSubmit={handleSubmit}>
         <div className="form-grid">
           <div className="field">
             <label htmlFor="brand-name">Name</label>
@@ -201,22 +226,16 @@ export default function BrandsManager() {
           <button className="btn btn--primary" type="submit" disabled={uploading}>
             {uploading ? "Uploading..." : editingId ? "Save changes" : "Add brand"}
           </button>
-          {editingId && (
-            <button type="button" className="btn btn--ghost" onClick={resetForm}>
-              Cancel edit
-            </button>
-          )}
+          <button type="button" className="btn btn--ghost" onClick={closeModal}>
+            Cancel
+          </button>
         </div>
       </form>
+      </Modal>
 
-      <div className="admin-panel">
-        <div className="admin-panel__head">
-          <h2 className="admin-card-title">All brands</h2>
-          <span className="form__note">{brands.length} total</span>
-        </div>
-        <DataTable
+      <DataTable
           loading={loading}
-          emptyMessage="No brands yet — add your first one above."
+          emptyMessage="No brands yet — use the Add brand button to create one."
           rows={brands}
           columns={[
             {
@@ -252,7 +271,6 @@ export default function BrandsManager() {
             </>
           )}
         />
-      </div>
     </AdminShell>
   );
 }

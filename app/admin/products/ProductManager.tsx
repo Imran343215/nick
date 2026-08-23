@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
+import DataTable from "@/components/admin/DataTable";
+import Modal from "@/components/admin/Modal";
 import { formatPrice } from "@/lib/utils";
 
 type Product = {
@@ -13,6 +15,7 @@ type Product = {
   condition: "new" | "second-hand";
   price: number;
   imageUrl: string;
+  imagePublicId?: string;
   stock: number;
   active: boolean;
   featured: boolean;
@@ -38,6 +41,8 @@ export default function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [categoryName, setCategoryName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -56,7 +61,8 @@ export default function ProductManager() {
     const data = await res.json();
     if (res.ok) setCategories(data.categories ?? []);
   }
-useEffect(() => {
+
+  useEffect(() => {
     loadProducts()
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load products."))
       .finally(() => setLoading(false));
@@ -76,10 +82,17 @@ useEffect(() => {
       data.append("timestamp", String(sign.timestamp));
       data.append("folder", sign.folder);
       data.append("signature", sign.signature);
-      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: "POST", body: data });
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
+        { method: "POST", body: data }
+      );
       const uploaded = await uploadRes.json();
       if (!uploadRes.ok) throw new Error(uploaded.error?.message || "Image upload failed.");
-      setForm((current) => ({ ...current, imageUrl: uploaded.secure_url, imagePublicId: uploaded.public_id }));
+      setForm((current) => ({
+        ...current,
+        imageUrl: uploaded.secure_url,
+        imagePublicId: uploaded.public_id,
+      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Image upload failed.");
     } finally {
@@ -87,7 +100,39 @@ useEffect(() => {
     }
   }
 
-  async function createCategory(event: React.FormEvent) {
+  function resetForm() {
+    setForm(emptyForm);
+    setEditingId(null);
+  }
+
+  function openAdd() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function closeModal() {
+    setShowForm(false);
+    resetForm();
+  }
+
+  function startEdit(product: Product) {
+    setEditingId(product._id);
+    setForm({
+      name: product.name,
+      description: product.description,
+      category: product.category ?? "",
+      condition: product.condition,
+      price: String(product.price),
+      stock: String(product.stock),
+      imageUrl: product.imageUrl,
+      imagePublicId: product.imagePublicId ?? "",
+      active: product.active,
+      featured: product.featured,
+    });
+    setShowForm(true);
+  }
+
+  async function createCategory(event: FormEvent) {
     event.preventDefault();
     setError("");
     const name = categoryName.trim();
@@ -99,6 +144,7 @@ useEffect(() => {
     });
     const data = await res.json();
     if (!res.ok) return setError(data.error || "Could not create category.");
+
     setCategories((current) => [...current, data.category]);
     setForm((current) => ({ ...current, category: data.category.name }));
     setCategoryName("");
@@ -114,18 +160,33 @@ useEffect(() => {
     setCategories((current) => current.filter((c) => c._id !== id));
   }
 
-  async function createProduct(event: React.FormEvent) {
+  async function saveProduct(event: FormEvent) {
     event.preventDefault();
     setError("");
-    const res = await fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, price: Number(form.price), stock: Number(form.stock) }),
-    });
+    const payload = {
+      ...form,
+      price: Number(form.price),
+      stock: Number(form.stock),
+    };
+    const res = await fetch(
+      editingId ? `/api/admin/products/${editingId}` : "/api/products",
+      {
+        method: editingId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not create product.");
-    setProducts((current) => [data.product, ...current]);
-    setForm(emptyForm);
+    if (!res.ok) return setError(data.error || "Could not save product.");
+
+    if (editingId) {
+      setProducts((current) =>
+        current.map((product) => (product._id === editingId ? data.product : product))
+      );
+    } else {
+      setProducts((current) => [data.product, ...current]);
+    }
+    closeModal();
   }
 
   async function updateProduct(id: string, update: Record<string, boolean | number>) {
@@ -154,204 +215,254 @@ useEffect(() => {
       setError(data.error || "Could not delete product.");
     }
   }
-return (
+
+  return (
     <AdminShell
       eyebrow="Store management"
-      title="Add phones for sale"
+      title="Store products"
       lead="List new and second-hand devices with secure Stripe checkout."
     >
       <div className="admin-toolbar admin-toolbar--compact">
-        <span className="form__note">
-          {products.length} products · {categories.length} categories
-        </span>
-        <button className="btn btn--ghost" onClick={() => router.push("/store")}>
-          View store
+        <button type="button" className="btn btn--primary" onClick={openAdd}>
+          + Add product
         </button>
+        <div className="admin-panel__filters">
+          <span className="form__note">
+            {products.length} products · {categories.length} categories
+          </span>
+          <button className="btn btn--ghost" onClick={() => router.push("/store")}>
+            View store
+          </button>
+        </div>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && !showForm && <div className="alert alert--error">{error}</div>}
 
-        <div className="admin-grid admin-grid--two">
-          <div className="form-card">
-            <h2 className="admin-card-title">Categories</h2>
-            <p className="form__note">
-              Create the categories shown in the product dropdown below.
-            </p>
-            <form className="admin-inline-form" onSubmit={createCategory}>
-              <input
-                aria-label="New category name"
-                placeholder="e.g. iPhone, Samsung, Accessories"
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
+      <DataTable
+        loading={loading}
+        emptyMessage="No products yet — use the Add product button to create one."
+        rows={products}
+        columns={[
+          {
+            key: "image",
+            header: "Image",
+            render: (row) => (
+              <img
+                src={row.imageUrl}
+                alt=""
+                className="catalog-admin-thumb catalog-admin-thumb--table"
               />
-              <button type="submit" className="btn btn--primary">
-                Add category
-              </button>
-            </form>
-            <ul className="admin-category-list">
-              {categories.map((cat) => (
-                <li key={cat._id}>
-                  <span>{cat.name}</span>
-                  <button
-                    className="btn btn--ghost"
-                    onClick={() => removeCategory(cat._id)}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-              {categories.length === 0 && (
-                <li className="form__note">No categories yet — add your first one.</li>
-              )}
-            </ul>
-          </div>
-<form className="form-card product-admin-form" onSubmit={createProduct}>
-            <h2 className="admin-card-title">Add a product</h2>
-            <div className="form-grid">
-              <div className="field">
-                <label htmlFor="product-name">Product name</label>
-                <input
-                  id="product-name"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="iPhone 15 128GB"
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="product-category">Category</label>
-                <select
-                  id="product-category"
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                >
-                  <option value="">No category</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat.name}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="field">
-                <label htmlFor="product-condition">Condition</label>
-                <select
-                  id="product-condition"
-                  value={form.condition}
-                  onChange={(e) => setForm({ ...form, condition: e.target.value })}
-                >
-                  <option value="new">New</option>
-                  <option value="second-hand">Second hand</option>
-                </select>
-              </div>
-              <div className="field">
-                <label htmlFor="product-price">Price GBP</label>
-                <input
-                  id="product-price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="product-stock">Stock</label>
-                <input
-                  id="product-stock"
-                  type="number"
-                  min="0"
-                  step="1"
-                  required
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                />
-              </div>
-              <div className="field field--full">
-                <label htmlFor="product-description">Description</label>
-                <textarea
-                  id="product-description"
-                  rows={3}
-                  required
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-              </div>
-              <div className="field field--full">
-                <label htmlFor="product-image">Product image</label>
-                <input
-                  id="product-image"
-                  type="file"
-                  accept="image/*"
-                  required={!form.imageUrl}
-                  onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])}
-                />
-                {uploading && <span className="form__note">Uploading image...</span>}
-                {form.imageUrl && (
-                  <img src={form.imageUrl} alt="Selected product" className="product-admin-preview" />
-                )}
-              </div>
-            </div>
-            <div className="form__actions">
-              <button className="btn btn--primary" disabled={uploading}>
-                {uploading ? "Uploading..." : "Add product"}
-              </button>
-              <label className="check-label">
-                <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-                />{" "}
-                Featured
-              </label>
-            </div>
+            ),
+          },
+          {
+            key: "name",
+            header: "Product",
+            render: (row) => (
+              <>
+                {row.name}
+                <br />
+                <small>
+                  {row.category ? `${row.category} · ` : ""}
+                  {row.condition}
+                </small>
+              </>
+            ),
+          },
+          {
+            key: "price",
+            header: "Price",
+            render: (row) => formatPrice(row.price),
+          },
+          {
+            key: "stock",
+            header: "Stock",
+            render: (row) => (
+              <input
+                type="number"
+                min="0"
+                aria-label={`Stock for ${row.name}`}
+                value={row.stock}
+                onChange={(e) => updateProduct(row._id, { stock: Number(e.target.value) })}
+              />
+            ),
+          },
+          {
+            key: "active",
+            header: "Live",
+            render: (row) => (
+              <input
+                type="checkbox"
+                checked={row.active}
+                aria-label={`Live status for ${row.name}`}
+                onChange={(e) => updateProduct(row._id, { active: e.target.checked })}
+              />
+            ),
+          },
+          {
+            key: "featured",
+            header: "Featured",
+            render: (row) =>
+              row.featured ? (
+                <span className="status-pill status-pill--active">featured</span>
+              ) : (
+                "—"
+              ),
+          },
+        ]}
+        actions={(row) => (
+          <>
+            <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
+              Edit
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={() => removeProduct(row._id)}>
+              Delete
+            </button>
+          </>
+        )}
+      />
+
+      <div className="admin-panel">
+        <div className="form-card">
+          <h2 className="admin-card-title">Categories</h2>
+          <p className="form__note">Create the categories shown in the product form dropdown.</p>
+          <form className="admin-inline-form" onSubmit={createCategory}>
+            <input
+              aria-label="New category name"
+              placeholder="e.g. iPhone, Samsung, Accessories"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+            />
+            <button type="submit" className="btn btn--primary">
+              Add category
+            </button>
           </form>
-        </div>
-<div className="admin-product-list">
-          {loading ? (
-            <div className="empty-note">Loading products...</div>
-          ) : products.length === 0 ? (
-            <div className="empty-note">No products yet — add your first phone above.</div>
-          ) : (
-            products.map((product) => (
-              <article className="admin-product-row" key={product._id}>
-                <img src={product.imageUrl} alt="" />
-                <div>
-                  <strong>{product.name}</strong>
-                  <small>
-                    {product.category ? `${product.category} · ` : ""}
-                    {product.condition} · {formatPrice(product.price)}
-                  </small>
-                </div>
-                <label className="stock-control">
-                  Stock{" "}
-                  <input
-                    type="number"
-                    min="0"
-                    value={product.stock}
-                    onChange={(e) =>
-                      updateProduct(product._id, { stock: Number(e.target.value) })
-                    }
-                  />
-                </label>
-                <label className="check-label">
-                  <input
-                    type="checkbox"
-                    checked={product.active}
-                    onChange={(e) =>
-                      updateProduct(product._id, { active: e.target.checked })
-                    }
-                  />{" "}
-                  Live
-                </label>
-                <button className="btn btn--ghost" onClick={() => removeProduct(product._id)}>
+          <ul className="admin-category-list">
+            {categories.map((cat) => (
+              <li key={cat._id}>
+                <span>{cat.name}</span>
+                <button className="btn btn--ghost" onClick={() => removeCategory(cat._id)}>
                   Delete
                 </button>
-              </article>
-            ))
-          )}
+              </li>
+            ))}
+            {categories.length === 0 && (
+              <li className="form__note">No categories yet — add your first one.</li>
+            )}
+          </ul>
         </div>
+      </div>
+
+      <Modal
+        open={showForm}
+        title={editingId ? "Edit product" : "Add product"}
+        onClose={closeModal}
+      >
+        {error && showForm && <div className="alert alert--error">{error}</div>}
+        <form className="form-card product-admin-form" onSubmit={saveProduct}>
+          <div className="form-grid">
+            <div className="field">
+              <label htmlFor="product-name">Product name</label>
+              <input
+                id="product-name"
+                required
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="iPhone 15 128GB"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="product-category">Category</label>
+              <select
+                id="product-category"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              >
+                <option value="">No category</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="product-condition">Condition</label>
+              <select
+                id="product-condition"
+                value={form.condition}
+                onChange={(e) => setForm({ ...form, condition: e.target.value })}
+              >
+                <option value="new">New</option>
+                <option value="second-hand">Second hand</option>
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="product-price">Price GBP</label>
+              <input
+                id="product-price"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="product-stock">Stock</label>
+              <input
+                id="product-stock"
+                type="number"
+                min="0"
+                step="1"
+                required
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+              />
+            </div>
+            <div className="field field--full">
+              <label htmlFor="product-description">Description</label>
+              <textarea
+                id="product-description"
+                rows={3}
+                required
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+            <div className="field field--full">
+              <label htmlFor="product-image">Product image</label>
+              <input
+                id="product-image"
+                type="file"
+                accept="image/*"
+                required={!form.imageUrl}
+                onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])}
+              />
+              {uploading && <span className="form__note">Uploading image...</span>}
+              {form.imageUrl && (
+                <img src={form.imageUrl} alt="Selected product" className="product-admin-preview" />
+              )}
+            </div>
+          </div>
+          <div className="form__actions">
+            <button className="btn btn--primary" disabled={uploading}>
+              {uploading ? "Uploading..." : editingId ? "Save changes" : "Add product"}
+            </button>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={form.featured}
+                onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+              />{" "}
+              Featured
+            </label>
+            <button type="button" className="btn btn--ghost" onClick={closeModal}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Modal>
     </AdminShell>
   );
 }

@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
+import Modal from "@/components/admin/Modal";
 
 type Coupon = {
   _id: string;
@@ -33,6 +34,7 @@ export default function CouponsManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   async function load() {
     const res = await fetch("/api/admin/coupons");
@@ -53,6 +55,16 @@ export default function CouponsManager() {
     setEditingId(null);
   }
 
+  function openAdd() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function closeModal() {
+    setShowForm(false);
+    resetForm();
+  }
+
   function startEdit(coupon: Coupon) {
     setEditingId(coupon._id);
     setForm({
@@ -64,6 +76,7 @@ export default function CouponsManager() {
       status: coupon.status,
       expiresAt: coupon.expiresAt ? coupon.expiresAt.slice(0, 10) : "",
     });
+    setShowForm(true);
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -96,6 +109,7 @@ export default function CouponsManager() {
       setCoupons((prev) => [data.coupon, ...prev]);
     }
     resetForm();
+    setShowForm(false);
   }
 
   async function remove(id: string) {
@@ -115,10 +129,22 @@ export default function CouponsManager() {
       title="Coupons"
       lead="Create discount codes customers can apply at checkout (e.g. RPR50)."
     >
-      {error && <div className="alert alert--error">{error}</div>}
+      <div className="admin-toolbar admin-toolbar--compact">
+        <button type="button" className="btn btn--primary" onClick={openAdd}>
+          + Add coupon
+        </button>
+        <span className="form__note">{coupons.length} total</span>
+      </div>
 
-      <form className="form-card admin-form-card" onSubmit={handleSubmit}>
-        <h2 className="admin-card-title">{editingId ? "Edit coupon" : "Add coupon"}</h2>
+      {error && !showForm && <div className="alert alert--error">{error}</div>}
+
+      <Modal
+        open={showForm}
+        title={editingId ? "Edit coupon" : "Add coupon"}
+        onClose={closeModal}
+      >
+        {error && showForm && <div className="alert alert--error">{error}</div>}
+        <form className="form-card admin-form-card" onSubmit={handleSubmit}>
         <div className="form-grid">
           <div className="field">
             <label htmlFor="coupon-code">Code</label>
@@ -204,17 +230,16 @@ export default function CouponsManager() {
           <button type="submit" className="btn btn--primary">
             {editingId ? "Save changes" : "Add coupon"}
           </button>
-          {editingId && (
-            <button type="button" className="btn btn--ghost" onClick={resetForm}>
-              Cancel edit
-            </button>
-          )}
+          <button type="button" className="btn btn--ghost" onClick={closeModal}>
+            Cancel
+          </button>
         </div>
       </form>
+      </Modal>
 
       <DataTable
         loading={loading}
-        emptyMessage="No coupons yet."
+        emptyMessage="No coupons yet — use the Add coupon button to create one."
         rows={coupons}
         columns={[
           { key: "code", header: "Code" },

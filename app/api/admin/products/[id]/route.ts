@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { isAdminAuthed } from "@/lib/auth";
 import Product from "@/models/Product";
+import Category from "@/models/Category";
+import { clean } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ id: string }> };
@@ -43,11 +45,31 @@ export async function PATCH(request: Request, { params }: Params) {
   if (!(await isAdminAuthed())) return NextResponse.json({ ok: false, error: "Admin authentication required." }, { status: 401 });
   try {
     const { id } = await params;
+    await connectDB();
     const body = await request.json();
     const update: Record<string, unknown> = {};
     if (typeof body.stock === "number" && Number.isInteger(body.stock) && body.stock >= 0) update.stock = body.stock;
     if (typeof body.active === "boolean") update.active = body.active;
     if (typeof body.featured === "boolean") update.featured = body.featured;
+    if (typeof body.name === "string" && clean(body.name)) update.name = clean(body.name);
+    if (typeof body.description === "string" && clean(body.description)) update.description = clean(body.description);
+    if (typeof body.category === "string") update.category = clean(body.category);
+    if (body.condition === "new" || body.condition === "second-hand") update.condition = body.condition;
+    if (typeof body.price === "number" && Number.isFinite(body.price) && body.price >= 0) update.price = body.price;
+    if (typeof body.imageUrl === "string" && clean(body.imageUrl)) update.imageUrl = clean(body.imageUrl);
+    if (typeof body.imagePublicId === "string") update.imagePublicId = clean(body.imagePublicId) || undefined;
+
+    if (update.category) {
+      const foundCategory = await Category.findOne({
+        $or: [{ name: update.category }, { slug: update.category }],
+      })
+        .lean()
+        .exec();
+      if (!foundCategory) {
+        return NextResponse.json({ ok: false, error: "Selected category does not exist." }, { status: 400 });
+      }
+    }
+
     const product = await Product.findByIdAndUpdate(id, update, { new: true }).lean().exec();
     if (!product) return NextResponse.json({ ok: false, error: "Product not found." }, { status: 404 });
     return NextResponse.json({ ok: true, product });

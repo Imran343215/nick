@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
+import Modal from "@/components/admin/Modal";
 import type { BrandShape, DeviceShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
 
@@ -28,6 +29,7 @@ export default function DevicesManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   async function loadBrands() {
     const res = await fetch("/api/admin/brands");
@@ -67,6 +69,16 @@ export default function DevicesManager() {
     setSlugTouched(false);
   }
 
+  function openAdd() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function closeModal() {
+    setShowForm(false);
+    resetForm();
+  }
+
   function startEdit(device: DeviceShape) {
     setEditingId(device._id);
     setForm({
@@ -79,7 +91,7 @@ export default function DevicesManager() {
       order: String(device.order),
     });
     setSlugTouched(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowForm(true);
   }
 
   async function handleUpload(file: File) {
@@ -125,6 +137,7 @@ export default function DevicesManager() {
 
     await loadDevices(brandFilter);
     resetForm();
+    setShowForm(false);
   }
 
   async function remove(id: string) {
@@ -142,10 +155,35 @@ export default function DevicesManager() {
       title="Devices"
       lead="Add device models under each brand for the repair catalog."
     >
-      {error && <div className="alert alert--error">{error}</div>}
+      <div className="admin-toolbar admin-toolbar--compact">
+        <button type="button" className="btn btn--primary" onClick={openAdd}>
+          + Add device
+        </button>
+        <div className="admin-panel__filters">
+          <label className="admin-filter">
+            Brand{" "}
+            <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
+              <option value="all">All brands</option>
+              {brands.map((brand) => (
+                <option key={brand._id} value={brand._id}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className="form__note">{filteredDevices.length} shown</span>
+        </div>
+      </div>
 
-      <form className="form-card admin-form-card" onSubmit={handleSubmit}>
-        <h2 className="admin-card-title">{editingId ? "Edit device" : "Add device"}</h2>
+      {error && !showForm && <div className="alert alert--error">{error}</div>}
+
+      <Modal
+        open={showForm}
+        title={editingId ? "Edit device" : "Add device"}
+        onClose={closeModal}
+      >
+        {error && showForm && <div className="alert alert--error">{error}</div>}
+        <form className="form-card admin-form-card" onSubmit={handleSubmit}>
         <div className="form-grid">
           <div className="field field--full">
             <label htmlFor="device-brand">Brand</label>
@@ -233,35 +271,16 @@ export default function DevicesManager() {
           <button className="btn btn--primary" type="submit" disabled={uploading}>
             {uploading ? "Uploading..." : editingId ? "Save changes" : "Add device"}
           </button>
-          {editingId && (
-            <button type="button" className="btn btn--ghost" onClick={resetForm}>
-              Cancel edit
-            </button>
-          )}
+          <button type="button" className="btn btn--ghost" onClick={closeModal}>
+            Cancel
+          </button>
         </div>
       </form>
+      </Modal>
 
-      <div className="admin-panel">
-        <div className="admin-panel__head">
-          <h2 className="admin-card-title">All devices</h2>
-          <div className="admin-panel__filters">
-            <label className="admin-filter">
-              Brand{" "}
-              <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
-                <option value="all">All brands</option>
-                {brands.map((brand) => (
-                  <option key={brand._id} value={brand._id}>
-                    {brand.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <span className="form__note">{filteredDevices.length} shown</span>
-          </div>
-        </div>
-        <DataTable
+      <DataTable
           loading={loading}
-          emptyMessage="No devices yet — add one above."
+          emptyMessage="No devices yet — use the Add device button to create one."
           rows={filteredDevices}
           columns={[
             {
@@ -301,7 +320,6 @@ export default function DevicesManager() {
             </>
           )}
         />
-      </div>
     </AdminShell>
   );
 }

@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
+import Modal from "@/components/admin/Modal";
 import type { BrandShape, DeviceShape, RepairServiceShape, ServiceTemplateShape } from "@/lib/repair-catalog";
 import { formatPrice } from "@/lib/utils";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
@@ -48,6 +49,8 @@ export default function RepairServicesManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [showTemplateForm, setShowTemplateForm] = useState(false);
+  const [showServiceForm, setShowServiceForm] = useState(false);
 
   async function loadBrands() {
     const res = await fetch("/api/admin/brands");
@@ -156,7 +159,7 @@ export default function RepairServicesManager() {
       order: String(template.order),
     });
     setSlugTouched(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowTemplateForm(true);
   }
 
   function startEditService(service: RepairServiceShape) {
@@ -176,7 +179,7 @@ export default function RepairServicesManager() {
       order: String(service.order),
     });
     setSlugTouched(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowServiceForm(true);
   }
 
   async function handleTemplateUpload(file: File) {
@@ -221,6 +224,7 @@ export default function RepairServicesManager() {
 
     await loadServiceTemplates();
     resetTemplateForm();
+    setShowTemplateForm(false);
   }
 
   async function handleServiceSubmit(event: FormEvent) {
@@ -251,6 +255,7 @@ export default function RepairServicesManager() {
 
     await loadServices(deviceFilter !== "all" ? deviceFilter : undefined);
     resetServiceForm();
+    setShowServiceForm(false);
   }
 
   async function removeTemplate(id: string) {
@@ -301,10 +306,30 @@ export default function RepairServicesManager() {
 
       {activeTab === "templates" ? (
         <>
-          <form className="form-card admin-form-card" onSubmit={handleTemplateSubmit}>
-            <h2 className="admin-card-title">
-              {editingTemplateId ? "Edit service template" : "Create service template"}
-            </h2>
+          <div className="admin-toolbar admin-toolbar--compact">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => {
+                resetTemplateForm();
+                setShowTemplateForm(true);
+              }}
+            >
+              + Create template
+            </button>
+            <span className="form__note">{serviceTemplates.length} templates</span>
+          </div>
+
+          <Modal
+            open={showTemplateForm}
+            title={editingTemplateId ? "Edit service template" : "Create service template"}
+            onClose={() => {
+              setShowTemplateForm(false);
+              resetTemplateForm();
+            }}
+          >
+            {error && showTemplateForm && <div className="alert alert--error">{error}</div>}
+            <form className="form-card admin-form-card" onSubmit={handleTemplateSubmit}>
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="template-name">Service name</label>
@@ -376,22 +401,16 @@ export default function RepairServicesManager() {
               <button className="btn btn--primary" type="submit" disabled={uploading}>
                 {uploading ? "Uploading..." : editingTemplateId ? "Save changes" : "Create template"}
               </button>
-              {editingTemplateId && (
-                <button type="button" className="btn btn--ghost" onClick={resetTemplateForm}>
-                  Cancel edit
-                </button>
-              )}
+              <button type="button" className="btn btn--ghost" onClick={() => setShowTemplateForm(false)}>
+                Cancel
+              </button>
             </div>
           </form>
+        </Modal>
 
-          <div className="admin-panel">
-            <div className="admin-panel__head">
-              <h2 className="admin-card-title">Service Templates</h2>
-              <span className="form__note">{serviceTemplates.length} templates</span>
-            </div>
-            <DataTable
-              loading={loading}
-              emptyMessage="No service templates yet — create one above."
+          <DataTable
+            loading={loading}
+            emptyMessage="No service templates yet."
               rows={serviceTemplates}
               columns={[
                 {
@@ -427,14 +446,32 @@ export default function RepairServicesManager() {
                 </>
               )}
             />
-          </div>
         </>
       ) : (
         <>
-          <form className="form-card admin-form-card" onSubmit={handleServiceSubmit}>
-            <h2 className="admin-card-title">
-              {editingServiceId ? "Edit device service" : "Assign service to device"}
-            </h2>
+          <div className="admin-toolbar admin-toolbar--compact">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => {
+                resetServiceForm();
+                setShowServiceForm(true);
+              }}
+            >
+              + Assign service
+            </button>
+          </div>
+
+          <Modal
+            open={showServiceForm}
+            title={editingServiceId ? "Edit device service" : "Assign service to device"}
+            onClose={() => {
+              setShowServiceForm(false);
+              resetServiceForm();
+            }}
+          >
+            {error && showServiceForm && <div className="alert alert--error">{error}</div>}
+            <form className="form-card admin-form-card" onSubmit={handleServiceSubmit}>
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="service-brand">Brand</label>
@@ -580,17 +617,15 @@ export default function RepairServicesManager() {
               <button className="btn btn--primary" type="submit">
                 {editingServiceId ? "Save changes" : "Assign service"}
               </button>
-              {editingServiceId && (
-                <button type="button" className="btn btn--ghost" onClick={resetServiceForm}>
-                  Cancel edit
-                </button>
-              )}
+              <button type="button" className="btn btn--ghost" onClick={() => setShowServiceForm(false)}>
+                Cancel
+              </button>
             </div>
           </form>
+        </Modal>
 
           <div className="admin-panel">
             <div className="admin-panel__head">
-              <h2 className="admin-card-title">Device Services</h2>
               <div className="admin-panel__filters">
                 <label className="admin-filter">
                   Brand{" "}
@@ -628,7 +663,7 @@ export default function RepairServicesManager() {
             </div>
             <DataTable
               loading={loading}
-              emptyMessage="No device services yet — assign one above."
+              emptyMessage="No device services yet — use the Assign service button."
               rows={filteredServices}
               columns={[
                 {
