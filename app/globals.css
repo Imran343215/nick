@@ -1478,6 +1478,369 @@ img {
   }
 }
 
+/* ---------- Admin shell + data table ---------- */
+.admin--shell {
+  padding: 2rem 0 4rem;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.admin-sidebar {
+  position: sticky;
+  top: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: calc(100vh - 2rem);
+}
+
+.admin-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-sidebar__brand strong {
+  display: block;
+  font-family: var(--display);
+}
+
+.admin-sidebar__brand small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.admin-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.admin-sidebar__link {
+  display: block;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar__link:hover {
+  color: var(--text);
+  background: rgba(255, 159, 28, 0.08);
+}
+
+.admin-sidebar__link--active {
+  color: var(--accent);
+  background: rgba(255, 159, 28, 0.12);
+  border: 1px solid rgba(255, 159, 28, 0.25);
+}
+
+.admin-sidebar__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.admin-sidebar__btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.admin-shell__main {
+  min-width: 0;
+}
+
+.admin-toolbar--compact {
+  margin-bottom: 1rem;
+}
+
+.admin-form-card {
+  max-width: none;
+  margin: 0 0 1.2rem;
+}
+
+.admin-panel {
+  margin-top: 0.5rem;
+}
+
+.admin-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.admin-panel__filters {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.admin-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.admin-filter select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.data-table {
+  overflow-x: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.data-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.data-table__table th,
+.data-table__table td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.data-table__table th {
+  background: rgba(255, 159, 28, 0.06);
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.data-table__table tbody tr:hover {
+  background: rgba(255, 159, 28, 0.03);
+}
+
+.data-table__table small {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.data-table__actions-head,
+.data-table__actions {
+  white-space: nowrap;
+}
+
+.data-table__actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.data-table__table select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-pill--active {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--success);
+}
+
+.status-pill--inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.catalog-admin-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.catalog-admin-thumb--table {
+  width: 44px;
+  height: 44px;
+}
+
+.price-strike {
+  text-decoration: line-through;
+  color: var(--muted);
+  margin-right: 0.35rem;
+  font-size: 0.88rem;
+}
+
+/* ---------- Repair catalog (public) ---------- */
+.repair-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.repair-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.2rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.repair-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 159, 28, 0.45);
+}
+
+.repair-card__media {
+  width: 100%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+}
+
+.repair-card__media img {
+  max-width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+}
+
+.repair-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.repair-breadcrumb {
+  color: var(--accent);
+}
+
+.repair-breadcrumb:hover {
+  text-decoration: underline;
+}
+
+.repair-service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.repair-service-item {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.repair-service-item__icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.repair-service-item__body h3 {
+  font-size: 1.02rem;
+  margin-bottom: 0.15rem;
+}
+
+.repair-service-item__time {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.repair-service-item__price {
+  text-align: right;
+  font-size: 1.05rem;
+}
+
+.repair-service-item__price strong {
+  color: var(--accent);
+}
+
+.repair-page__cta {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+    min-height: auto;
+  }
+
+  .admin-sidebar__nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .repair-service-item {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .repair-service-item__price {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
 /* ---------- Footer ---------- */
 .footer {
   border-top: 1px solid var(--border);

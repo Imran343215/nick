@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminShell from "@/components/admin/AdminShell";
+import DataTable from "@/components/admin/DataTable";
 
 const STATUSES = ["new", "contacted", "quoted", "completed", "closed"];
 
@@ -90,89 +92,75 @@ export default function AdminDashboard() {
     }
   }
 
-  async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin");
-    router.refresh();
-  }
-
   return (
-    <section className="admin">
-      <div className="container">
-        <div className="section__header">
-          <div className="section__eyebrow">Back office</div>
-          <h1 className="section__title">Repair Queries</h1>
-          <p className="section__lead">
-            Every query submitted on the landing page, stored in MongoDB.
-          </p>
-        </div>
-
-        {error && <div className="alert alert--error">{error}</div>}
-
-        <div className="admin-toolbar">
-          <button className="btn btn--accent" onClick={() => router.push("/admin/products")}>
-            Manage store products
-          </button>
-          <button className="btn btn--accent" onClick={() => router.push("/admin/orders")}>
-            Manage orders
-          </button>
-          <button className="btn btn--ghost" onClick={() => load()}>
-            {loading ? "Loading..." : "Refresh"}
-          </button>
-          <span className="form__note">{queries.length} total</span>
-          <button className="btn btn--ghost" onClick={() => logout()}>
-            Log out
-          </button>
-        </div>
-
-        {queries.length === 0 && !loading ? (
-          <div className="empty-note">
-            No queries yet. Submit one from the landing page quote form.
-          </div>
-        ) : (
-          <div className="admin-table">
-            <div className="admin-row admin-row--head">
-              <span>Tracking ID</span>
-              <span>Customer</span>
-              <span>Device</span>
-              <span>Issue</span>
-              <span>Status</span>
-              <span>Actions</span>
-            </div>
-            {queries.map((q) => (
-              <div className="admin-row" key={q.id}>
-                <strong className="tracking-id">{q.trackingId}</strong>
-                <span>
-                  {q.name}
-                  <br />
-                  <small>
-                    {q.email}
-                    <br />
-                    {q.phone}
-                  </small>
-                </span>
-                <span>
-                  {q.deviceBrand} {q.deviceModel}
-                </span>
-                <span>{q.issue}</span>
-                <select
-                  value={q.status}
-                  onChange={(e) => updateStatus(q.id, e.target.value)}
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <button className="btn btn--ghost" onClick={() => remove(q.id)}>
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+    <AdminShell
+      eyebrow="Back office"
+      title="Repair Queries"
+      lead="Every query submitted on the landing page, stored in MongoDB."
+    >
+      <div className="admin-toolbar admin-toolbar--compact">
+        <button className="btn btn--ghost" onClick={() => load()}>
+          {loading ? "Loading..." : "Refresh"}
+        </button>
+        <span className="form__note">{queries.length} total</span>
       </div>
-    </section>
+
+      {error && <div className="alert alert--error">{error}</div>}
+
+      <DataTable
+        loading={loading}
+        emptyMessage="No queries yet. Submit one from the landing page quote form."
+        rows={queries.map((q) => ({ ...q, _id: q.id }))}
+        columns={[
+          {
+            key: "trackingId",
+            header: "Tracking ID",
+            render: (row) => <strong className="tracking-id">{row.trackingId}</strong>,
+          },
+          {
+            key: "customer",
+            header: "Customer",
+            render: (row) => (
+              <>
+                {row.name}
+                <br />
+                <small>
+                  {row.email}
+                  <br />
+                  {row.phone}
+                </small>
+              </>
+            ),
+          },
+          {
+            key: "device",
+            header: "Device",
+            render: (row) => `${row.deviceBrand} ${row.deviceModel}`,
+          },
+          { key: "issue", header: "Issue" },
+          {
+            key: "status",
+            header: "Status",
+            render: (row) => (
+              <select
+                value={row.status}
+                onChange={(e) => updateStatus(row.id, e.target.value)}
+              >
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            ),
+          },
+        ]}
+        actions={(row) => (
+          <button className="btn btn--ghost" onClick={() => remove(row.id)}>
+            Delete
+          </button>
+        )}
+      />
+    </AdminShell>
   );
 }

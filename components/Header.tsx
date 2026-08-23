@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 const links = [
+  { href: "/repair", label: "Repairs" },
   { href: "#services", label: "Services" },
   { href: "/store", label: "Store" },
   { href: "/orders", label: "My order" },

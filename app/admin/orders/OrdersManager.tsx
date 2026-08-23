@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminShell from "@/components/admin/AdminShell";
 import { formatPrice } from "@/lib/utils";
 
 type Order = {
@@ -84,30 +85,19 @@ export default function OrdersManager() {
   }
 
   return (
-    <section className="admin">
-      <div className="container">
-        <div className="section__header">
-          <div className="section__eyebrow">Back office</div>
-          <h1 className="section__title">Orders</h1>
-          <p className="section__lead">
-            Every store order placed through Stripe. Update fulfilment status and
-            add the courier + tracking number, which customers see on My Orders.
-          </p>
-        </div>
-<div className="admin-toolbar">
-          <button className="btn btn--ghost" onClick={() => router.push("/admin")}>
-            Repair queries
-          </button>
-          <button className="btn btn--ghost" onClick={() => router.push("/admin/products")}>
-            Store products
-          </button>
-          <span className="form__note">{orders.length} orders</span>
-          <button className="btn btn--ghost" onClick={() => load()}>
-            {loading ? "Loading..." : "Refresh"}
-          </button>
-        </div>
+    <AdminShell
+      eyebrow="Back office"
+      title="Orders"
+      lead="Every store order placed through Stripe. Update fulfilment status and add the courier + tracking number, which customers see on My Orders."
+    >
+      <div className="admin-toolbar admin-toolbar--compact">
+        <span className="form__note">{orders.length} orders</span>
+        <button className="btn btn--ghost" onClick={() => load()}>
+          {loading ? "Loading..." : "Refresh"}
+        </button>
+      </div>
 
-        {error && <div className="alert alert--error">{error}</div>}
+      {error && <div className="alert alert--error">{error}</div>}
 
         {loading ? (
           <div className="empty-note">Loading orders...</div>
@@ -190,7 +180,6 @@ export default function OrdersManager() {
             ))}
           </div>
         )}
-      </div>
-    </section>
+    </AdminShell>
   );
 }

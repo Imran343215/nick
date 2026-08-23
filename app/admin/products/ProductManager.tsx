@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminShell from "@/components/admin/AdminShell";
 import { formatPrice } from "@/lib/utils";
 
 type Product = {
@@ -154,32 +155,21 @@ useEffect(() => {
     }
   }
 return (
-    <section className="admin">
-      <div className="container">
-        <div className="section__header">
-          <div className="section__eyebrow">Store management</div>
-          <h1 className="section__title">Add phones for sale</h1>
-          <p className="section__lead">
-            List new and second-hand devices with secure Stripe checkout.
-          </p>
-        </div>
+    <AdminShell
+      eyebrow="Store management"
+      title="Add phones for sale"
+      lead="List new and second-hand devices with secure Stripe checkout."
+    >
+      <div className="admin-toolbar admin-toolbar--compact">
+        <span className="form__note">
+          {products.length} products · {categories.length} categories
+        </span>
+        <button className="btn btn--ghost" onClick={() => router.push("/store")}>
+          View store
+        </button>
+      </div>
 
-        <div className="admin-toolbar">
-          <button className="btn btn--ghost" onClick={() => router.push("/admin")}>
-            Repair queries
-          </button>
-          <button className="btn btn--ghost" onClick={() => router.push("/admin/orders")}>
-            Manage orders
-          </button>
-          <span className="form__note">
-            {products.length} products · {categories.length} categories
-          </span>
-          <button className="btn btn--ghost" onClick={() => router.push("/store")}>
-            View store
-          </button>
-        </div>
-
-        {error && <div className="alert alert--error">{error}</div>}
+      {error && <div className="alert alert--error">{error}</div>}
 
         <div className="admin-grid admin-grid--two">
           <div className="form-card">
@@ -362,7 +352,6 @@ return (
             ))
           )}
         </div>
-      </div>
-    </section>
+    </AdminShell>
   );
 }

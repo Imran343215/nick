@@ -4,7 +4,7 @@ import { isAdminAuthed } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await isAdminAuthed())) {
     return NextResponse.json({ ok: false, error: "Admin authentication required." }, { status: 401 });
   }
@@ -16,8 +16,15 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: "Cloudinary is not configured." }, { status: 503 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const requestedFolder = searchParams.get("folder")?.trim();
+  const allowedFolders = ["itechnick-products", "itechnick-repair-catalog"];
+  const folder =
+    requestedFolder && allowedFolders.includes(requestedFolder)
+      ? requestedFolder
+      : "itechnick-products";
+
   const timestamp = Math.floor(Date.now() / 1000);
-  const folder = "itechnick-products";
   const signature = crypto
     .createHash("sha1")
     .update(`folder=${folder}&timestamp=${timestamp}${apiSecret}`)
