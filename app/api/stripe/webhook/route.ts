@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
+import { ensureOrderNotified } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,9 @@ export async function POST(request: Request) {
         },
         { upsert: true }
       ).exec();
+
+      const order = await Order.findOne({ stripeSessionId: session.id }).lean().exec();
+      if (order) await ensureOrderNotified(order);
     }
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;

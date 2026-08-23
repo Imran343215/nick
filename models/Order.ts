@@ -18,6 +18,7 @@ export interface IOrder {
   stripePaymentIntentId?: string;
   paymentStatus: "pending" | "paid" | "failed";
   fulfillmentStatus: "pending" | "processing" | "shipped" | "completed" | "cancelled";
+  notifiedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -45,6 +46,7 @@ const OrderSchema = new Schema<IOrder>(
       enum: ["pending", "processing", "shipped", "completed", "cancelled"],
       default: "pending",
     },
+    notifiedAt: { type: Date },
   },
   { timestamps: true }
 );

@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
+import { ensureOrderNotified } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
       order.paymentStatus = "paid";
       if (typeof stripeSession.payment_intent === "string") order.stripePaymentIntentId = stripeSession.payment_intent;
       await order.save();
+      await ensureOrderNotified(order.toObject());
     }
 
     return NextResponse.json({ ok: true, orderNumber: order.orderNumber, paymentStatus: order.paymentStatus });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 const links = [
   { href: "#services", label: "Services" },
@@ -44,11 +44,8 @@ export default function Header() {
           <li className="nav__auth-group">
             <Show when="signed-out">
               <SignInButton mode="modal">
-                <button className="btn btn--ghost nav__auth">Sign in</button>
+                <button className="btn btn--primary nav__auth">Sign in</button>
               </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="btn btn--primary nav__auth">Sign up</button>
-              </SignUpButton>
             </Show>
             <Show when="signed-in"><UserButton /></Show>
           </li>
