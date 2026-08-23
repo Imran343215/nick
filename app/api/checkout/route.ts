@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import Order from "@/models/Order";
-import { clean, validateEmail } from "@/lib/utils";
+import { clean, generateOrderNumber, validateEmail } from "@/lib/utils";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "This product is out of stock." }, { status: 409 });
     }
 
+    const orderNumber = generateOrderNumber();
     const stripe = new Stripe(secret);
     const origin = new URL(request.url).origin;
     try {
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
         }],
         metadata: {
           clerkUserId: userId,
+          orderNumber,
           productId: String(product._id),
           productName: product.name,
           unitPrice: String(product.price),
@@ -66,10 +68,11 @@ export async function POST(request: Request) {
           customerEmail,
           shippingAddress,
         },
-        success_url: `${origin}/store/success?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${origin}/store/success?session_id={CHECKOUT_SESSION_ID}&order_number=${encodeURIComponent(orderNumber)}`,
         cancel_url: `${origin}/store/${product.slug}/order?cancelled=1`,
       });
       await Order.create({
+        orderNumber,
         clerkUserId: userId,
         productId: product._id,
         productName: product.name,

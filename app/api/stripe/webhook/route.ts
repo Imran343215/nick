@@ -29,6 +29,7 @@ export async function POST(request: Request) {
             stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : undefined,
           },
           $setOnInsert: {
+            orderNumber: metadata.orderNumber ?? `IT-${session.id.slice(-10).toUpperCase()}`,
             clerkUserId: metadata.clerkUserId,
             productId: metadata.productId,
             productName: metadata.productName ?? "Product",

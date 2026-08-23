@@ -29,3 +29,10 @@ export function validateEmail(email: string): boolean {
 export function clean(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
+
+export function generateOrderNumber(): string {
+  const random = [...crypto.getRandomValues(new Uint8Array(5))]
+    .map((byte) => byte.toString(36).toUpperCase())
+    .join("");
+  return `IT-${random}`;
+}
