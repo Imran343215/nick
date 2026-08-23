@@ -992,6 +992,106 @@ img {
   color: var(--danger);
 }
 
+.status-badge--pending,
+.status-badge--processing {
+  background: rgba(255, 159, 28, 0.14);
+  color: var(--cta);
+}
+
+.status-badge--completed {
+  background: rgba(52, 211, 153, 0.14);
+  color: var(--success);
+}
+
+.status-badge--shipped {
+  background: rgba(120, 120, 255, 0.16);
+  color: #a5b4fc;
+}
+
+.status-badge--failed {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--danger);
+}
+
+/* ---------- Order list ---------- */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.order-group__heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.9rem;
+}
+
+.order-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.order-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.order-card__number {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--cta);
+  letter-spacing: 0.04em;
+}
+
+.order-card__date {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.order-card__product {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.order-card__details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.order-card__details dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.order-card__details dd {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.order-card__actions {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .track-result__row {
   display: flex;
   justify-content: space-between;

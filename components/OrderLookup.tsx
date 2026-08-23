@@ -7,7 +7,10 @@ import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 type Order = {
   orderNumber: string;
   productName: string;
+  quantity: number;
   total: number;
+  currency: string;
+  customerName: string;
   paymentStatus: string;
   fulfillmentStatus: string;
   createdAt: string;
@@ -15,12 +18,12 @@ type Order = {
 
 export default function OrderLookup() {
   const { isLoaded, isSignedIn } = useUser();
-  const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [query, setQuery] = useState("");
+  const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cancelling, setCancelling] = useState("");
 
-  // Automatically load the signed-in user's orders — no manual search needed.
+  // Automatically load the signed-in user's orders — no search required.
   useEffect(() => {
     if (!isSignedIn) return;
     let cancelled = false;
@@ -32,7 +35,7 @@ export default function OrderLookup() {
         const res = await fetch("/api/orders");
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Could not load your orders.");
-        if (!cancelled) setAllOrders(Array.isArray(data.orders) ? data.orders : []);
+        if (!cancelled) setOrders(Array.isArray(data.orders) ? data.orders : []);
       } catch (err) {
         if (!cancelled)
           setError(err instanceof Error ? err.message : "Could not load your orders.");
@@ -46,38 +49,43 @@ export default function OrderLookup() {
       cancelled = true;
     };
   }, [isSignedIn]);
-
-  // The order number box is now an optional local filter over the user's orders.
-  const q = query.trim().toLowerCase();
-  const orders = q
-    ? allOrders.filter((o) => o.orderNumber.toLowerCase().includes(q))
-    : allOrders;
-
-  async function cancelOrder(orderNumber: string) {
-    if (!window.confirm("Cancel this order and request a Stripe refund?")) return;
-    setLoading(true);
+async function cancelOrder(order: Order) {
+    if (
+      !window.confirm(
+        `Cancel ${order.productName} (#${order.orderNumber}) and request a Stripe refund?`
+      )
+    )
+      return;
+    setCancelling(order.orderNumber);
     setError("");
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderNumber }),
+        body: JSON.stringify({ orderNumber: order.orderNumber }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not cancel order.");
-      setAllOrders((prev) =>
-        prev.map((o) =>
-          o.orderNumber === orderNumber && data.order
-            ? { ...o, ...data.order }
-            : o
-        )
-      );
+      if (data.order) {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.orderNumber === order.orderNumber ? { ...o, ...data.order } : o
+          )
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not cancel order.");
     } finally {
-      setLoading(false);
+      setCancelling("");
     }
   }
+
+  const activeOrders = orders.filter((o) =>
+    ["pending", "processing"].includes(o.fulfillmentStatus)
+  );
+  const pastOrders = orders.filter((o) =>
+    !["pending", "processing"].includes(o.fulfillmentStatus)
+  );
 
   if (!isLoaded) {
     return (
@@ -120,58 +128,114 @@ export default function OrderLookup() {
           <div className="section__eyebrow">Customer orders</div>
           <h1 className="section__title">Your orders</h1>
           <p className="section__lead">
-            These are the orders linked to your account. Use the filter below to
-            narrow by order number if you have many.
+            {orders.length
+              ? `You have ${orders.length} order${orders.length === 1 ? "" : "s"} linked to your account.`
+              : "Orders you place will appear here, linked to your account."}
           </p>
         </div>
 
-        <form
-          className="form-card order-form"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          {error && <div className="alert alert--error">{error}</div>}
-          <div className="field">
-            <label htmlFor="lookup-number">Filter by order number (optional)</label>
-            <input
-              id="lookup-number"
-              placeholder="e.g. IT-ABC123"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-          <button className="btn btn--primary" disabled={loading}>
-            {loading ? "Loading..." : "Filter orders"}
-          </button>
-        </form>
+        {error && <div className="alert alert--error">{error}</div>}
 
         {loading && <div className="empty-note">Loading your orders...</div>}
 
         {!loading && orders.length === 0 && (
           <div className="empty-note">
-            {q ? "No orders match that order number." : "You don't have any orders yet."}
+            You don't have any orders yet. Orders you place will appear here.
           </div>
         )}
 
-        {orders.map((order) => (
-          <div className="order-result" key={order.orderNumber}>
-            <strong>{order.productName}</strong>
-            <span>{order.orderNumber}</span>
-            <span>{formatPrice(order.total)}</span>
-            <span className="status-badge">
-              Payment: {order.paymentStatus} · {order.fulfillmentStatus}
-            </span>
-            {["pending", "processing"].includes(order.fulfillmentStatus) && (
-              <button
-                className="btn btn--ghost"
-                onClick={() => cancelOrder(order.orderNumber)}
-                disabled={loading}
-              >
-                Cancel order and refund
-              </button>
+        {!loading && orders.length > 0 && (
+          <div className="order-list">
+            {activeOrders.length > 0 && (
+              <div className="order-group">
+                <div className="order-group__heading">In progress</div>
+                {activeOrders.map((order) => (
+                  <OrderCard
+                    key={order.orderNumber}
+                    order={order}
+                    cancelling={cancelling === order.orderNumber}
+                    onCancel={cancelOrder}
+                  />
+                ))}
+              </div>
+            )}
+
+            {pastOrders.length > 0 && (
+              <div className="order-group">
+                <div className="order-group__heading">Past orders</div>
+                {pastOrders.map((order) => (
+                  <OrderCard
+                    key={order.orderNumber}
+                    order={order}
+                    cancelling={false}
+                    onCancel={cancelOrder}
+                  />
+                ))}
+              </div>
             )}
           </div>
-        ))}
+        )}
       </div>
     </section>
+  );
+}
+function OrderCard({
+  order,
+  cancelling,
+  onCancel,
+}: {
+  order: Order;
+  cancelling: boolean;
+  onCancel: (order: Order) => void;
+}) {
+  const canCancel = ["pending", "processing"].includes(order.fulfillmentStatus);
+  const orderedAt = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString()
+    : "";
+
+  return (
+    <article className="order-card">
+      <div className="order-card__head">
+        <div>
+          <div className="order-card__number">#{order.orderNumber}</div>
+          <div className="order-card__date">
+            {orderedAt && `Placed ${orderedAt}`}
+          </div>
+        </div>
+        <span className={`status-badge status-badge--${order.fulfillmentStatus}`}>
+          {order.fulfillmentStatus}
+        </span>
+      </div>
+
+      <div className="order-card__product">{order.productName}</div>
+
+      <dl className="order-card__details">
+        <div>
+          <dt>Quantity</dt>
+          <dd>{order.quantity}</dd>
+        </div>
+        <div>
+          <dt>Total</dt>
+          <dd>{formatPrice(order.total)}</dd>
+        </div>
+        <div>
+          <dt>Payment</dt>
+          <dd>{order.paymentStatus}</dd>
+        </div>
+      </dl>
+
+      {canCancel && (
+        <div className="order-card__actions">
+          <button
+            type="button"
+            className="btn btn--ghost"
+            disabled={cancelling}
+            onClick={() => onCancel(order)}
+          >
+            {cancelling ? "Cancelling..." : "Cancel order and refund"}
+          </button>
+        </div>
+      )}
+    </article>
   );
 }
