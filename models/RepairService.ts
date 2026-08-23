@@ -2,10 +2,9 @@ import mongoose, { Schema, model, models, Types } from "mongoose";
 
 export interface IRepairService {
   device: Types.ObjectId;
+  serviceTemplate: Types.ObjectId;
   name: string;
   slug: string;
-  icon: string;
-  iconPublicId?: string;
   price: number;
   discountPrice?: number;
   estimatedTime?: string;
@@ -18,6 +17,7 @@ export interface IRepairService {
 const RepairServiceSchema = new Schema<IRepairService>(
   {
     device: { type: Schema.Types.ObjectId, ref: "Device", required: true, index: true },
+    serviceTemplate: { type: Schema.Types.ObjectId, ref: "ServiceTemplate", required: true, index: true },
     name: { type: String, required: true, trim: true },
     slug: {
       type: String,
@@ -25,8 +25,6 @@ const RepairServiceSchema = new Schema<IRepairService>(
       trim: true,
       lowercase: true,
     },
-    icon: { type: String, required: true, trim: true },
-    iconPublicId: { type: String, trim: true },
     price: { type: Number, required: true, min: 0 },
     discountPrice: { type: Number, min: 0 },
     estimatedTime: { type: String, trim: true },

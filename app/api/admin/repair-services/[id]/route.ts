@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { isAdminAuthed } from "@/lib/auth";
 import Device from "@/models/Device";
 import RepairService from "@/models/RepairService";
+import ServiceTemplate from "@/models/ServiceTemplate";
 import { clean, slugify } from "@/lib/utils";
 import { serializeRepairService, type Doc } from "@/lib/repair-catalog";
 
@@ -49,11 +50,8 @@ export async function PATCH(request: Request, { params }: Params) {
     const update: Record<string, unknown> = {};
     const deviceId = clean(body.device) || String(existing.device);
     if (clean(body.device)) update.device = deviceId;
+    if (clean(body.serviceTemplate)) update.serviceTemplate = clean(body.serviceTemplate);
     if (typeof body.name === "string" && clean(body.name)) update.name = clean(body.name);
-    if (typeof body.icon === "string" && clean(body.icon)) {
-      update.icon = clean(body.icon);
-      update.iconPublicId = clean(body.iconPublicId);
-    }
     if (typeof body.price === "number" && Number.isFinite(body.price) && body.price >= 0) {
       update.price = body.price;
     }
@@ -84,6 +82,7 @@ export async function PATCH(request: Request, { params }: Params) {
         select: "name slug brand",
         populate: { path: "brand", select: "name slug" },
       })
+      .populate("serviceTemplate")
       .lean()
       .exec();
     if (!service) {
@@ -91,7 +90,7 @@ export async function PATCH(request: Request, { params }: Params) {
     }
     return NextResponse.json({
       ok: true,
-      service: serializeRepairService(service, service.device as Doc),
+      service: serializeRepairService(service, service.device as Doc, service.serviceTemplate as Doc),
     });
   } catch (err) {
     console.error("[api PATCH /api/admin/repair-services/:id]", err);

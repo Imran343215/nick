@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/db";
 import Brand from "@/models/Brand";
 import Device from "@/models/Device";
 import RepairService from "@/models/RepairService";
+import ServiceTemplate from "@/models/ServiceTemplate";
 
 export type BrandShape = {
   _id: string;
@@ -27,6 +28,7 @@ export type DeviceShape = {
 export type RepairServiceShape = {
   _id: string;
   device: string;
+  serviceTemplate: string;
   deviceName?: string;
   deviceSlug?: string;
   brandName?: string;
@@ -37,6 +39,15 @@ export type RepairServiceShape = {
   price: number;
   discountPrice?: number;
   estimatedTime?: string;
+  status: "active" | "inactive";
+  order: number;
+};
+
+export type ServiceTemplateShape = {
+  _id: string;
+  name: string;
+  slug: string;
+  icon: string;
   status: "active" | "inactive";
   order: number;
 };
@@ -75,25 +86,39 @@ export function serializeDevice(
 
 export function serializeRepairService(
   doc: Doc,
-  device?: Doc | null
+  device?: Doc | null,
+  serviceTemplate?: Doc | null
 ): RepairServiceShape {
   const deviceDoc = device ?? (doc.device as Record<string, unknown> | null);
   const brandDoc = deviceDoc?.brand as Record<string, unknown> | undefined;
+  const templateDoc = serviceTemplate ?? (doc.serviceTemplate as Record<string, unknown> | null);
   return {
     _id: String(doc._id),
     device: deviceDoc ? String(deviceDoc._id ?? doc.device) : String(doc.device),
+    serviceTemplate: templateDoc ? String(templateDoc._id ?? doc.serviceTemplate) : String(doc.serviceTemplate),
     deviceName: deviceDoc ? (deviceDoc.name as string) : undefined,
     deviceSlug: deviceDoc ? (deviceDoc.slug as string) : undefined,
     brandName: brandDoc ? (brandDoc.name as string) : undefined,
     brandSlug: brandDoc ? (brandDoc.slug as string) : undefined,
     name: doc.name as string,
     slug: doc.slug as string,
-    icon: doc.icon as string,
+    icon: templateDoc ? (templateDoc.icon as string) : (doc.icon as string),
     price: Number(doc.price),
     discountPrice:
       doc.discountPrice != null ? Number(doc.discountPrice) : undefined,
     estimatedTime: doc.estimatedTime as string | undefined,
     status: doc.status as RepairServiceShape["status"],
+    order: Number(doc.order ?? 0),
+  };
+}
+
+export function serializeServiceTemplate(doc: Doc): ServiceTemplateShape {
+  return {
+    _id: String(doc._id),
+    name: doc.name as string,
+    slug: doc.slug as string,
+    icon: doc.icon as string,
+    status: doc.status as ServiceTemplateShape["status"],
     order: Number(doc.order ?? 0),
   };
 }
@@ -159,12 +184,38 @@ export async function fetchActiveServicesForDevice(
   try {
     await connectDB();
     const docs = await RepairService.find({ device: deviceId, status: "active" })
+      .populate("serviceTemplate")
       .sort({ order: 1, name: 1 })
       .lean()
       .exec();
-    return docs.map((doc) => serializeRepairService(doc));
+    return docs.map((doc) => serializeRepairService(doc, undefined, doc.serviceTemplate as Doc | null));
   } catch (err) {
     console.error("[repair-catalog] could not load repair services:", err);
     return [];
+  }
+}
+
+export async function fetchActiveServiceTemplates(): Promise<ServiceTemplateShape[]> {
+  try {
+    await connectDB();
+    const docs = await ServiceTemplate.find({ status: "active" })
+      .sort({ order: 1, name: 1 })
+      .lean()
+      .exec();
+    return docs.map((doc) => serializeServiceTemplate(doc));
+  } catch (err) {
+    console.error("[repair-catalog] could not load service templates:", err);
+    return [];
+  }
+}
+
+export async function fetchServiceTemplateBySlug(slug: string): Promise<ServiceTemplateShape | null> {
+  try {
+    await connectDB();
+    const doc = await ServiceTemplate.findOne({ slug, status: "active" }).lean().exec();
+    return doc ? serializeServiceTemplate(doc) : null;
+  } catch (err) {
+    console.error("[repair-catalog] could not load service template:", err);
+    return null;
   }
 }

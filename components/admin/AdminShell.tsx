@@ -8,7 +8,7 @@ const NAV = [
   { href: "/admin", label: "Repair queries", exact: true },
   { href: "/admin/brands", label: "Brands" },
   { href: "/admin/devices", label: "Devices" },
-  { href: "/admin/repair-services", label: "Repair services" },
+  { href: "/admin/repair-services", label: "Service templates" },
   { href: "/admin/repair-bookings", label: "Repair bookings" },
   { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/products", label: "Store products" },

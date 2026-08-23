@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { isAdminAuthed } from "@/lib/auth";
 import Device from "@/models/Device";
 import RepairService from "@/models/RepairService";
+import ServiceTemplate from "@/models/ServiceTemplate";
 import { clean, slugify } from "@/lib/utils";
 import { serializeRepairService, type Doc } from "@/lib/repair-catalog";
 
@@ -41,13 +42,14 @@ export async function GET(request: Request) {
         select: "name slug brand",
         populate: { path: "brand", select: "name slug" },
       })
+      .populate("serviceTemplate")
       .sort({ order: 1, name: 1 })
       .lean()
       .exec();
     return NextResponse.json({
       ok: true,
       services: services.map((doc) =>
-        serializeRepairService(doc, doc.device as Doc)
+        serializeRepairService(doc, doc.device as Doc, doc.serviceTemplate as Doc)
       ),
     });
   } catch (err) {
@@ -64,8 +66,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const deviceId = clean(body.device);
+    const serviceTemplateId = clean(body.serviceTemplate);
     const name = clean(body.name);
-    const icon = clean(body.icon);
     const price = Number(body.price);
     const discountPrice =
       body.discountPrice != null && body.discountPrice !== ""
@@ -74,9 +76,9 @@ export async function POST(request: Request) {
     const status = body.status === "inactive" ? "inactive" : "active";
     const order = Number(body.order);
 
-    if (!deviceId || !name || !icon || !Number.isFinite(price) || price < 0) {
+    if (!deviceId || !serviceTemplateId || !name || !Number.isFinite(price) || price < 0) {
       return NextResponse.json(
-        { ok: false, error: "Device, name, icon, and a valid price are required." },
+        { ok: false, error: "Device, service template, name, and a valid price are required." },
         { status: 400 }
       );
     }
@@ -87,14 +89,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "Selected device does not exist." }, { status: 400 });
     }
 
+    const serviceTemplate = await ServiceTemplate.findById(serviceTemplateId).lean().exec();
+    if (!serviceTemplate) {
+      return NextResponse.json({ ok: false, error: "Selected service template does not exist." }, { status: 400 });
+    }
+
     const baseSlug = slugify(body.slug || name) || `service-${Date.now()}`;
     const slug = await uniqueServiceSlug(deviceId, baseSlug);
     const service = await RepairService.create({
       device: deviceId,
+      serviceTemplate: serviceTemplateId,
       name,
       slug,
-      icon,
-      iconPublicId: clean(body.iconPublicId),
       price,
       discountPrice:
         discountPrice != null && Number.isFinite(discountPrice) ? discountPrice : undefined,
@@ -108,6 +114,7 @@ export async function POST(request: Request) {
         select: "name slug brand",
         populate: { path: "brand", select: "name slug" },
       })
+      .populate("serviceTemplate")
       .lean()
       .exec();
     return NextResponse.json(
@@ -115,7 +122,8 @@ export async function POST(request: Request) {
         ok: true,
         service: serializeRepairService(
           populated as Doc,
-          populated?.device as Doc
+          populated?.device as Doc,
+          populated?.serviceTemplate as Doc
         ),
       },
       { status: 201 }
