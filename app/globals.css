@@ -2068,6 +2068,10 @@ img {
   text-align: center;
 }
 
+.repair-section-subhead {
+  margin-top: 2.5rem;
+}
+
 /* ---------- Repair Booking Page ---------- */
 .repair-page--booking {
   background: linear-gradient(180deg, var(--bg) 0%, rgba(15, 21, 39, 0.6) 100%);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { isAdminAuthed } from "@/lib/auth";
 import Brand from "@/models/Brand";
+import RepairCategory from "@/models/RepairCategory";
 import { clean, slugify } from "@/lib/utils";
 import { serializeBrand } from "@/lib/repair-catalog";
 
@@ -20,6 +21,15 @@ async function uniqueBrandSlug(base: string, excludeId?: string): Promise<string
   }
 }
 
+async function resolveCategoryId(value: unknown): Promise<string | null | undefined> {
+  if (value === undefined) return undefined;
+  const raw = clean(value as string);
+  if (!raw) return null;
+  await connectDB();
+  const exists = await RepairCategory.findById(raw).lean().exec();
+  return exists ? raw : null;
+}
+
 /** GET /api/admin/brands — list all brands (admin). */
 export async function GET() {
   if (!(await isAdminAuthed())) {
@@ -27,8 +37,8 @@ export async function GET() {
   }
   try {
     await connectDB();
-    const brands = await Brand.find().sort({ order: 1, name: 1 }).lean().exec();
-    return NextResponse.json({ ok: true, brands: brands.map(serializeBrand) });
+    const brands = await Brand.find().populate("category").sort({ order: 1, name: 1 }).lean().exec();
+    return NextResponse.json({ ok: true, brands: brands.map((b) => serializeBrand(b)) });
   } catch (err) {
     console.error("[api GET /api/admin/brands]", err);
     return NextResponse.json({ ok: false, error: "Could not load brands." }, { status: 500 });
@@ -54,19 +64,29 @@ export async function POST(request: Request) {
       );
     }
 
+    const categoryId = await resolveCategoryId(body.categoryId);
+    if (categoryId === null) {
+      return NextResponse.json(
+        { ok: false, error: "Selected repair category does not exist." },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
     const baseSlug = slugify(body.slug || name) || `brand-${Date.now()}`;
     const slug = await uniqueBrandSlug(baseSlug);
-    const brand = await Brand.create({
+    const created = await Brand.create({
       name,
       slug,
       logo,
       logoPublicId: clean(body.logoPublicId),
+      category: categoryId ?? undefined,
       status,
       order: Number.isFinite(order) ? order : 0,
     });
+    const brand = await Brand.findById(created._id).populate("category").lean().exec();
     return NextResponse.json(
-      { ok: true, brand: serializeBrand(brand.toObject()) },
+      { ok: true, brand: serializeBrand(brand as Record<string, unknown>) },
       { status: 201 }
     );
   } catch (err) {

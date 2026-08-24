@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { isAdminAuthed } from "@/lib/auth";
 import Brand from "@/models/Brand";
+import RepairCategory from "@/models/RepairCategory";
 import Device from "@/models/Device";
 import { clean, slugify } from "@/lib/utils";
 import { serializeBrand } from "@/lib/repair-catalog";
@@ -39,13 +40,31 @@ export async function PATCH(request: Request, { params }: Params) {
     }
     if (body.status === "active" || body.status === "inactive") update.status = body.status;
     if (typeof body.order === "number" && Number.isFinite(body.order)) update.order = body.order;
+    if (typeof body.categoryId === "string") {
+      const raw = clean(body.categoryId);
+      if (!raw) {
+        update.category = null;
+      } else {
+        const exists = await RepairCategory.findById(raw).lean().exec();
+        if (!exists) {
+          return NextResponse.json(
+            { ok: false, error: "Selected repair category does not exist." },
+            { status: 400 }
+          );
+        }
+        update.category = raw;
+      }
+    }
     if (typeof body.slug === "string" && clean(body.slug)) {
       update.slug = await uniqueBrandSlug(slugify(body.slug), id);
     } else if (update.name && typeof update.name === "string") {
       update.slug = await uniqueBrandSlug(slugify(update.name), id);
     }
 
-    const brand = await Brand.findByIdAndUpdate(id, update, { new: true }).lean().exec();
+    const brand = await Brand.findByIdAndUpdate(id, update, { new: true })
+      .populate("category")
+      .lean()
+      .exec();
     if (!brand) {
       return NextResponse.json({ ok: false, error: "Brand not found." }, { status: 404 });
     }

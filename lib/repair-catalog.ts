@@ -1,14 +1,27 @@
 import { connectDB } from "@/lib/db";
 import Brand from "@/models/Brand";
+import RepairCategory from "@/models/RepairCategory";
 import Device from "@/models/Device";
 import RepairService from "@/models/RepairService";
 import ServiceTemplate from "@/models/ServiceTemplate";
+
+export type CategoryShape = {
+  _id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  status: "active" | "inactive";
+  order: number;
+};
 
 export type BrandShape = {
   _id: string;
   name: string;
   slug: string;
   logo: string;
+  category?: string;
+  categoryName?: string;
+  categorySlug?: string;
   status: "active" | "inactive";
   order: number;
 };
@@ -55,12 +68,29 @@ export type ServiceTemplateShape = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Doc = Record<string, any>;
 
-export function serializeBrand(doc: Doc): BrandShape {
+export function serializeCategory(doc: Doc): CategoryShape {
+  return {
+    _id: String(doc._id),
+    name: doc.name as string,
+    slug: doc.slug as string,
+    icon: doc.icon as string,
+    status: doc.status as CategoryShape["status"],
+    order: Number(doc.order ?? 0),
+  };
+}
+
+export function serializeBrand(doc: Doc, category?: Doc | null): BrandShape {
+  const catDoc =
+    category ??
+    ((doc.category as Record<string, unknown> | null | undefined) ?? null);
   return {
     _id: String(doc._id),
     name: doc.name as string,
     slug: doc.slug as string,
     logo: doc.logo as string,
+    category: catDoc ? String(catDoc._id ?? doc.category) : undefined,
+    categoryName: catDoc ? (catDoc.name as string | undefined) : undefined,
+    categorySlug: catDoc ? (catDoc.slug as string | undefined) : undefined,
     status: doc.status as BrandShape["status"],
     order: Number(doc.order ?? 0),
   };
@@ -123,10 +153,56 @@ export function serializeServiceTemplate(doc: Doc): ServiceTemplateShape {
   };
 }
 
+export async function fetchActiveCategories(): Promise<CategoryShape[]> {
+  try {
+    await connectDB();
+    const docs = await RepairCategory.find({ status: "active" })
+      .sort({ order: 1, name: 1 })
+      .lean()
+      .exec();
+    return docs.map((doc) => serializeCategory(doc));
+  } catch (err) {
+    console.error("[repair-catalog] could not load categories:", err);
+    return [];
+  }
+}
+
+export async function fetchActiveCategoryBySlug(
+  slug: string
+): Promise<CategoryShape | null> {
+  try {
+    await connectDB();
+    const doc = await RepairCategory.findOne({ slug, status: "active" })
+      .lean()
+      .exec();
+    return doc ? serializeCategory(doc) : null;
+  } catch (err) {
+    console.error("[repair-catalog] could not load category:", err);
+    return null;
+  }
+}
+
+export async function fetchActiveBrandsForCategory(
+  categoryId: string
+): Promise<BrandShape[]> {
+  try {
+    await connectDB();
+    const docs = await Brand.find({ category: categoryId, status: "active" })
+      .sort({ order: 1, name: 1 })
+      .lean()
+      .exec();
+    return docs.map((doc) => serializeBrand(doc));
+  } catch (err) {
+    console.error("[repair-catalog] could not load brands for category:", err);
+    return [];
+  }
+}
+
 export async function fetchActiveBrands(): Promise<BrandShape[]> {
   try {
     await connectDB();
     const docs = await Brand.find({ status: "active" })
+      .populate("category")
       .sort({ order: 1, name: 1 })
       .lean()
       .exec();
@@ -140,7 +216,10 @@ export async function fetchActiveBrands(): Promise<BrandShape[]> {
 export async function fetchActiveBrandBySlug(slug: string): Promise<BrandShape | null> {
   try {
     await connectDB();
-    const doc = await Brand.findOne({ slug, status: "active" }).lean().exec();
+    const doc = await Brand.findOne({ slug, status: "active" })
+      .populate("category")
+      .lean()
+      .exec();
     return doc ? serializeBrand(doc) : null;
   } catch (err) {
     console.error("[repair-catalog] could not load brand:", err);

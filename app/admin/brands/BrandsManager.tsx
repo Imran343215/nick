@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
-import type { BrandShape } from "@/lib/repair-catalog";
+import type { BrandShape, CategoryShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
 
 const emptyForm = {
@@ -13,6 +13,7 @@ const emptyForm = {
   slug: "",
   logo: "",
   logoPublicId: "",
+  categoryId: "",
   status: "active" as "active" | "inactive",
   order: "0",
 };
@@ -20,6 +21,7 @@ const emptyForm = {
 export default function BrandsManager() {
   const router = useRouter();
   const [brands, setBrands] = useState<BrandShape[]>([]);
+  const [categories, setCategories] = useState<CategoryShape[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -37,6 +39,12 @@ export default function BrandsManager() {
   }
 
   useEffect(() => {
+    fetch("/api/admin/repair-categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok) setCategories(data.categories ?? []);
+      })
+      .catch(() => undefined);
     load()
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load brands."))
       .finally(() => setLoading(false));
@@ -65,6 +73,7 @@ export default function BrandsManager() {
       slug: brand.slug,
       logo: brand.logo,
       logoPublicId: "",
+      categoryId: brand.category ?? "",
       status: brand.status,
       order: String(brand.order),
     });
@@ -97,6 +106,7 @@ export default function BrandsManager() {
       slug: form.slug.trim(),
       logo: form.logo,
       logoPublicId: form.logoPublicId,
+      categoryId: form.categoryId,
       status: form.status,
       order: Number(form.order),
     };
@@ -195,6 +205,21 @@ export default function BrandsManager() {
             />
           </div>
           <div className="field">
+            <label htmlFor="brand-category">Repair category</label>
+            <select
+              id="brand-category"
+              value={form.categoryId}
+              onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+            >
+              <option value="">No category</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
             <label htmlFor="brand-status">Status</label>
             <select
               id="brand-status"
@@ -247,6 +272,11 @@ export default function BrandsManager() {
             },
             { key: "name", header: "Name" },
             { key: "slug", header: "Slug" },
+            {
+              key: "categoryName",
+              header: "Category",
+              render: (row) => row.categoryName ?? "—",
+            },
             {
               key: "status",
               header: "Status",

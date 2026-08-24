@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 
 const NAV = [
   { href: "/admin", label: "Repair queries", exact: true },
+  { href: "/admin/repair-categories", label: "Categories" },
   { href: "/admin/brands", label: "Brands" },
   { href: "/admin/devices", label: "Devices" },
   { href: "/admin/repair-services", label: "Service templates" },

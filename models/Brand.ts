@@ -1,10 +1,11 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import mongoose, { Schema, model, models, Types } from "mongoose";
 
 export interface IBrand {
   name: string;
   slug: string;
   logo: string;
   logoPublicId?: string;
+  category?: Types.ObjectId;
   status: "active" | "inactive";
   order: number;
   createdAt?: Date;
@@ -24,6 +25,11 @@ const BrandSchema = new Schema<IBrand>(
     },
     logo: { type: String, required: true, trim: true },
     logoPublicId: { type: String, trim: true },
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: "RepairCategory",
+      index: true,
+    },
     status: {
       type: String,
       enum: ["active", "inactive"],

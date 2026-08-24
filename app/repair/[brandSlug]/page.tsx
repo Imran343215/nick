@@ -30,9 +30,17 @@ export default async function RepairBrandPage({
             <div className="section__header">
               <div className="section__eyebrow">
                 <Link href="/repair" className="repair-breadcrumb">
-                  All brands
-                </Link>{" "}
-                / {brand.name}
+                  All repairs
+                </Link>
+                {brand.categorySlug && brand.categoryName ? (
+                  <>
+                    {" "}/{" "}
+                    <Link href={`/repair/category/${brand.categorySlug}`} className="repair-breadcrumb">
+                      {brand.categoryName}
+                    </Link>
+                  </>
+                ) : null}
+                {" "}/ {brand.name}
               </div>
               <h1 className="section__title">{brand.name} repairs</h1>
               <p className="section__lead">Choose your device model to see available repairs.</p>
