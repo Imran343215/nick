@@ -5,10 +5,8 @@ import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 const links = [
-  { href: "/repair", label: "Repairs" },
   { href: "#services", label: "Services" },
   { href: "/store", label: "Store" },
-  { href: "/orders", label: "My order" },
   { href: "#how-it-works", label: "How It Works" },
   { href: "#track", label: "Track Repair" },
   { href: "#contact", label: "Contact" },
@@ -37,6 +35,13 @@ export default function Header() {
               </a>
             </li>
           ))}
+          <Show when="signed-in">
+            <li>
+              <Link href="/orders" className="nav__link" onClick={() => setOpen(false)}>
+                My order
+              </Link>
+            </li>
+          </Show>
           <li>
             <Link href="/repair" className="btn btn--accent nav__cta" onClick={() => setOpen(false)}>
               Book a Repair
@@ -48,7 +53,33 @@ export default function Header() {
                 <button className="btn btn--primary nav__auth">Sign in</button>
               </SignInButton>
             </Show>
-            <Show when="signed-in"><UserButton /></Show>
+            <Show when="signed-in">
+              <UserButton>
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="My orders"
+                    href="/orders"
+                    labelIcon={
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                        <path d="m3.3 7 8.7 5 8.7-5" />
+                        <path d="M12 22V12" />
+                      </svg>
+                    }
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
+            </Show>
           </li>
         </ul>
 
