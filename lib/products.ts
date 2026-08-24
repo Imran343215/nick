@@ -14,6 +14,7 @@ export type ProductShape = {
   stock: number;
   active: boolean;
   featured: boolean;
+  createdAt?: string;
 };
 
 export function serializeProduct(product: Record<string, any>): ProductShape {
@@ -30,6 +31,9 @@ export function serializeProduct(product: Record<string, any>): ProductShape {
     stock: product.stock,
     active: product.active,
     featured: product.featured,
+    createdAt: product.createdAt
+      ? new Date(product.createdAt).toISOString()
+      : undefined,
   };
 }
 

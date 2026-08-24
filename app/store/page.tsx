@@ -35,7 +35,7 @@ export default async function StorePage() {
               <h1 className="section__title">Reliable phones, ready for you</h1>
               <p className="section__lead">
                 Every item is checked by our technicians before it reaches the
-                store. Filter by category to find the phone you're after.
+                store. Search, filter and sort to find the phone you're after.
               </p>
             </div>
             {products.length ? (
