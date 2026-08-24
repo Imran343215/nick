@@ -7,6 +7,7 @@ import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { BrandShape, DeviceShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
+import { useToast } from "@/components/ui/toast";
 
 const emptyForm = {
   brand: "",
@@ -20,6 +21,7 @@ const emptyForm = {
 
 export default function DevicesManager() {
   const router = useRouter();
+  const toast = useToast();
   const [brands, setBrands] = useState<BrandShape[]>([]);
   const [devices, setDevices] = useState<DeviceShape[]>([]);
   const [brandFilter, setBrandFilter] = useState("all");
@@ -133,20 +135,30 @@ export default function DevicesManager() {
       }
     );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save device.");
+    if (!res.ok) {
+      setError(data.error || "Could not save device.");
+      toast.error(data.error || "Could not save device.");
+      return;
+    }
 
     await loadDevices(brandFilter);
     resetForm();
     setShowForm(false);
+    toast.success(editingId ? "Device updated." : "Device created.");
   }
 
   async function remove(id: string) {
     if (!window.confirm("Delete this device?")) return;
     const res = await fetch(`/api/admin/devices/${id}`, { method: "DELETE" });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not delete device.");
+    if (!res.ok) {
+      setError(data.error || "Could not delete device.");
+      toast.error(data.error || "Could not delete device.");
+      return;
+    }
     setDevices((current) => current.filter((d) => d._id !== id));
     if (editingId === id) resetForm();
+    toast.success("Device deleted.");
   }
 
   return (

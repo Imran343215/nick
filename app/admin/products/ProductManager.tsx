@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, firstError, nonNegativeNumber, requiredField } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 
 type Product = {
   _id: string;
@@ -38,6 +39,7 @@ const emptyForm = {
 
 export default function ProductManager() {
   const router = useRouter();
+  const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState(emptyForm);
@@ -136,18 +138,26 @@ export default function ProductManager() {
     event.preventDefault();
     setError("");
     const name = categoryName.trim();
-    if (!name) return;
+    if (!name) {
+      toast.error("Category name is required.");
+      return;
+    }
     const res = await fetch("/api/admin/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not create category.");
+    if (!res.ok) {
+      setError(data.error || "Could not create category.");
+      toast.error(data.error || "Could not create category.");
+      return;
+    }
 
     setCategories((current) => [...current, data.category]);
     setForm((current) => ({ ...current, category: data.category.name }));
     setCategoryName("");
+    toast.success("Category created.");
   }
 
   async function removeCategory(id: string) {
@@ -155,14 +165,30 @@ export default function ProductManager() {
     const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
-      return setError(data.error || "Could not delete category.");
+      setError(data.error || "Could not delete category.");
+      toast.error(data.error || "Could not delete category.");
+      return;
     }
     setCategories((current) => current.filter((c) => c._id !== id));
+    toast.success("Category deleted.");
   }
 
   async function saveProduct(event: FormEvent) {
     event.preventDefault();
     setError("");
+
+    const validationError = firstError([
+      requiredField(form.name, "Product name"),
+      nonNegativeNumber(form.price, "Price"),
+      nonNegativeNumber(form.stock, "Stock"),
+      !form.imageUrl ? "Product image is required." : "",
+    ]);
+    if (validationError) {
+      setError(validationError);
+      toast.error(validationError);
+      return;
+    }
+
     const payload = {
       ...form,
       price: Number(form.price),
@@ -177,7 +203,11 @@ export default function ProductManager() {
       }
     );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save product.");
+    if (!res.ok) {
+      setError(data.error || "Could not save product.");
+      toast.error(data.error || "Could not save product.");
+      return;
+    }
 
     if (editingId) {
       setProducts((current) =>
@@ -187,6 +217,7 @@ export default function ProductManager() {
       setProducts((current) => [data.product, ...current]);
     }
     closeModal();
+    toast.success(editingId ? "Product updated." : "Product created.");
   }
 
   async function updateProduct(id: string, update: Record<string, boolean | number>) {
@@ -198,21 +229,26 @@ export default function ProductManager() {
     if (!res.ok) {
       const data = await res.json();
       setError(data.error || "Could not update product.");
+      toast.error(data.error || "Could not update product.");
       return;
     }
     const data = await res.json();
     setProducts((current) =>
       current.map((product) => (product._id === id ? { ...product, ...data.product } : product))
     );
+    toast.success("Product updated.");
   }
 
   async function removeProduct(id: string) {
     if (!window.confirm("Delete this product?")) return;
     const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
-    if (res.ok) setProducts((current) => current.filter((product) => product._id !== id));
-    else {
+    if (res.ok) {
+      setProducts((current) => current.filter((product) => product._id !== id));
+      toast.success("Product deleted.");
+    } else {
       const data = await res.json();
       setError(data.error || "Could not delete product.");
+      toast.error(data.error || "Could not delete product.");
     }
   }
 

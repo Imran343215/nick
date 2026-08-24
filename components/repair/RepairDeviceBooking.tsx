@@ -14,6 +14,7 @@ import {
   type RepairCart,
 } from "@/lib/repair-cart";
 import { formatPrice } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 import RepairPriceSummary from "./RepairPriceSummary";
 
 const FAQS = [
@@ -43,7 +44,7 @@ export default function RepairDeviceBooking({
   services: RepairServiceShape[];
 }) {
   const router = useRouter();
-  
+  const toast = useToast();
   // Initialize cart immediately with data from props or sessionStorage
   const initialCart = useMemo(() => {
     try {
@@ -143,16 +144,26 @@ export default function RepairDeviceBooking({
         couponCode: data.code,
         couponDiscount: data.discount,
       });
+      toast.success(`Coupon ${data.code} applied!`);
     } catch (err) {
-      setCouponError(err instanceof Error ? err.message : "Could not apply coupon.");
+      const message = err instanceof Error ? err.message : "Could not apply coupon.";
+      setCouponError(message);
       setCart({ ...cart, couponCode: undefined, couponDiscount: 0 });
+      toast.error(message);
     } finally {
       setApplyingCoupon(false);
     }
   }
 
   function bookNow() {
-    if (!cart || cart.selected.length === 0 || !agreedToTerms) return;
+    if (!cart || cart.selected.length === 0) {
+      toast.error("Select at least one repair service before booking.");
+      return;
+    }
+    if (!agreedToTerms) {
+      toast.error("Please agree to the Terms and Conditions to continue.");
+      return;
+    }
     if (customMessage.trim()) {
       sessionStorage.setItem(
         `repair-message:${brand.slug}:${device.slug}`,
@@ -290,7 +301,6 @@ export default function RepairDeviceBooking({
           onAgreedChange={setAgreedToTerms}
           actionLabel="Book Now"
           onAction={bookNow}
-          actionDisabled={!agreedToTerms || cart.selected.length === 0}
         />
       </div>
     </div>

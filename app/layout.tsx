@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import ToastProvider from "@/components/ui/toast";
 import type { Metadata, Viewport } from "next";
 // This file is used to define the root layout of the application, including metadata and viewport settings. It imports global CSS styles and sets up the HTML structure for the app. The metadata includes the title and description for SEO purposes, while the viewport settings ensure proper scaling on different devices. The RootLayout component wraps the children components in an HTML structure with a specified language attribute.  
 import "./globals.css";
@@ -24,7 +25,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ClerkProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </ClerkProvider>
       </body>
     </html>

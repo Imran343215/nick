@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 
 export default function AdminLogin() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,10 +26,13 @@ export default function AdminLogin() {
       if (!res.ok) {
         throw new Error(data.error || "Login failed.");
       }
+      toast.success("Welcome back!");
       router.push("/admin");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed.");
+      const message = err instanceof Error ? err.message : "Login failed.";
+      setError(message);
+      toast.error(message);
       setLoading(false);
     }
   }

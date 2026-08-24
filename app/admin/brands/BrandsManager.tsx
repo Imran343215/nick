@@ -7,6 +7,7 @@ import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { BrandShape, CategoryShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
+import { useToast } from "@/components/ui/toast";
 
 const emptyForm = {
   name: "",
@@ -20,6 +21,7 @@ const emptyForm = {
 
 export default function BrandsManager() {
   const router = useRouter();
+  const toast = useToast();
   const [brands, setBrands] = useState<BrandShape[]>([]);
   const [categories, setCategories] = useState<CategoryShape[]>([]);
   const [form, setForm] = useState(emptyForm);
@@ -120,7 +122,11 @@ export default function BrandsManager() {
       }
     );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save brand.");
+    if (!res.ok) {
+      setError(data.error || "Could not save brand.");
+      toast.error(data.error || "Could not save brand.");
+      return;
+    }
 
     if (editingId) {
       setBrands((current) =>
@@ -131,15 +137,21 @@ export default function BrandsManager() {
     }
     resetForm();
     setShowForm(false);
+    toast.success(editingId ? "Brand updated." : "Brand created.");
   }
 
   async function remove(id: string) {
     if (!window.confirm("Delete this brand?")) return;
     const res = await fetch(`/api/admin/brands/${id}`, { method: "DELETE" });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not delete brand.");
+    if (!res.ok) {
+      setError(data.error || "Could not delete brand.");
+      toast.error(data.error || "Could not delete brand.");
+      return;
+    }
     setBrands((current) => current.filter((b) => b._id !== id));
     if (editingId === id) resetForm();
+    toast.success("Brand deleted.");
   }
 
   return (

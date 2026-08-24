@@ -12,6 +12,13 @@ import {
   loadCart,
   type RepairCart,
 } from "@/lib/repair-cart";
+import { useToast } from "@/components/ui/toast";
+import {
+  firstError,
+  requiredField,
+  validEmail,
+  validPhone,
+} from "@/lib/utils";
 import RepairPriceSummary from "./RepairPriceSummary";
 
 type SavedAddress = {
@@ -85,6 +92,7 @@ export default function RepairCheckout({
   const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const toast = useToast();
 
   const pickupSlots = useMemo(() => buildPickupSlots(), []);
 
@@ -133,8 +141,11 @@ export default function RepairCheckout({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Invalid coupon.");
       setCart({ ...cart, couponCode: data.code, couponDiscount: data.discount });
+      toast.success(`Coupon ${data.code} applied!`);
     } catch (err) {
-      setCouponError(err instanceof Error ? err.message : "Could not apply coupon.");
+      const message = err instanceof Error ? err.message : "Could not apply coupon.";
+      setCouponError(message);
+      toast.error(message);
     } finally {
       setApplyingCoupon(false);
     }
@@ -149,22 +160,43 @@ export default function RepairCheckout({
       body: JSON.stringify({ ...addressForm, isDefault: addresses.length === 0 }),
     });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save address.");
+    if (!res.ok) {
+      setError(data.error || "Could not save address.");
+      toast.error(data.error || "Could not save address.");
+      return;
+    }
     setAddresses((prev) => [...prev, data.address]);
     setSelectedAddressId(data.address._id);
     setShowAddressForm(false);
+    toast.success("Address saved.");
   }
 
   async function deleteAddress(id: string) {
     if (!window.confirm("Delete this address?")) return;
     const res = await fetch(`/api/repair-addresses/${id}`, { method: "DELETE" });
-    if (!res.ok) return;
+    if (!res.ok) {
+      toast.error("Could not delete address.");
+      return;
+    }
     setAddresses((prev) => prev.filter((a) => a._id !== id));
     if (selectedAddressId === id) setSelectedAddressId("");
+    toast.success("Address deleted.");
   }
 
   async function placeOrder() {
-    if (!cart || !agreedToTerms || !pickupDate) return;
+    if (!cart) return;
+    if (!agreedToTerms) {
+      const message = "Please agree to the Terms and Conditions to continue.";
+      setError(message);
+      toast.error(message);
+      return;
+    }
+    if (!pickupDate) {
+      const message = "Choose a pickup date to continue.";
+      setError(message);
+      toast.error(message);
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -175,7 +207,9 @@ export default function RepairCheckout({
     if (isSignedIn) {
       const addr = addresses.find((a) => a._id === selectedAddressId);
       if (!addr) {
-        setError("Select or add an address.");
+        const message = "Select or add an address.";
+        setError(message);
+        toast.error(message);
         setLoading(false);
         return;
       }
@@ -189,8 +223,18 @@ export default function RepairCheckout({
         addressPostcode: addr.postcode,
       };
     } else {
-      if (!guestForm.name || !guestForm.email || !guestForm.phone || !guestForm.line1) {
-        setError("Fill in all contact and address fields.");
+      const validationError = firstError([
+        requiredField(guestForm.name, "Full name"),
+        requiredField(guestForm.email, "Email"),
+        validEmail(guestForm.email),
+        requiredField(guestForm.phone, "Phone"),
+        validPhone(guestForm.phone),
+        requiredField(guestForm.line1, "Address"),
+        requiredField(guestForm.postcode, "Postcode"),
+      ]);
+      if (validationError) {
+        setError(validationError);
+        toast.error(validationError);
         setLoading(false);
         return;
       }
@@ -228,11 +272,14 @@ export default function RepairCheckout({
       if (!res.ok) throw new Error(data.error || "Could not place order.");
       clearCart(brandSlug, deviceSlug);
       sessionStorage.removeItem(`repair-message:${brandSlug}:${deviceSlug}`);
+      toast.success("Order placed! Redirecting to your confirmation...");
       router.push(
         `/repair/${brandSlug}/${deviceSlug}/success?tracking=${encodeURIComponent(data.booking.trackingId)}`
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not place order.");
+      const message = err instanceof Error ? err.message : "Could not place order.";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -518,7 +565,7 @@ export default function RepairCheckout({
           onAgreedChange={setAgreedToTerms}
           actionLabel={loading ? "Placing order..." : "Place Order"}
           onAction={placeOrder}
-          actionDisabled={loading || !agreedToTerms || !pickupDate}
+          actionDisabled={loading}
           showCoupon={false}
         />
       </div>

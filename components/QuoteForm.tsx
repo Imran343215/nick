@@ -1,6 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast";
+import {
+  firstError,
+  requiredField,
+  validEmail,
+  validPhone,
+} from "@/lib/utils";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -8,14 +15,33 @@ export default function QuoteForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [trackingId, setTrackingId] = useState("");
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("loading");
     setErrorMessage("");
 
     const form = e.currentTarget;
-    const payload = Object.fromEntries(new FormData(form));
+    const payload = Object.fromEntries(new FormData(form)) as Record<string, string>;
+
+    // Client-side validation — surface the first problem inline and as a toast.
+    const error = firstError([
+      requiredField(payload.name ?? "", "Full name"),
+      requiredField(payload.email ?? "", "Email"),
+      validEmail(payload.email ?? ""),
+      requiredField(payload.phone ?? "", "Phone"),
+      validPhone(payload.phone ?? ""),
+      requiredField(payload.deviceBrand ?? "", "Device brand"),
+      requiredField(payload.issue ?? "", "Issue type"),
+    ]);
+    if (error) {
+      setStatus("error");
+      setErrorMessage(error);
+      toast.error(error);
+      return;
+    }
+
+    setStatus("loading");
 
     try {
       const res = await fetch("/api/queries", {
@@ -29,10 +55,13 @@ export default function QuoteForm() {
       }
       setTrackingId(data.query.trackingId);
       setStatus("success");
+      toast.success("Query sent! We'll reply within an hour.");
       form.reset();
     } catch (err) {
       setStatus("error");
-      setErrorMessage(err instanceof Error ? err.message : "Something went wrong.");
+      const message = err instanceof Error ? err.message : "Something went wrong.";
+      setErrorMessage(message);
+      toast.error(message);
     }
   }
 

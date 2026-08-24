@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { courierTrackerUrl, formatPrice } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 
 type Order = {
@@ -24,6 +25,7 @@ export default function OrderLookup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [cancelling, setCancelling] = useState("");
+  const toast = useToast();
 
   // Automatically load the signed-in user's orders — no search required.
   useEffect(() => {
@@ -39,8 +41,12 @@ export default function OrderLookup() {
         if (!res.ok) throw new Error(data.error || "Could not load your orders.");
         if (!cancelled) setOrders(Array.isArray(data.orders) ? data.orders : []);
       } catch (err) {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : "Could not load your orders.");
+        if (!cancelled) {
+          const message =
+            err instanceof Error ? err.message : "Could not load your orders.";
+          setError(message);
+          toast.error(message);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -75,8 +81,11 @@ async function cancelOrder(order: Order) {
           )
         );
       }
+      toast.success("Order cancelled — your refund is on its way.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not cancel order.");
+      const message = err instanceof Error ? err.message : "Could not cancel order.";
+      setError(message);
+      toast.error(message);
     } finally {
       setCancelling("");
     }

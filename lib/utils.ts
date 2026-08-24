@@ -1,5 +1,55 @@
 /** Small shared helpers used across the app. */
 
+/* ---------- Client-side form validation ----------
+   Each validator returns an error message, or "" when the value is fine.
+   Forms collect them and show the first problem inline + as a toast. */
+
+export function isEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+/** Accepts UK local (07…) and international (+44…) formats with spaces/dashes. */
+export function isPhone(value: string): boolean {
+  return /^(\+?44|0)\d{9,10}$/.test(value.replace(/[\s\-().]/g, ""));
+}
+
+/** Full UK postcode, e.g. NW6 4TA / M15 4QX / EC1A 1BB. */
+export function isUkPostcode(value: string): boolean {
+  return /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(value.trim());
+}
+
+export function requiredField(value: string, label: string): string {
+  return value.trim() ? "" : `${label} is required.`;
+}
+
+export function validEmail(value: string, label = "Email"): string {
+  return !value.trim() || isEmail(value) ? "" : `Enter a valid ${label.toLowerCase()}.`;
+}
+
+export function validPhone(value: string, label = "Phone"): string {
+  return !value.trim() || isPhone(value)
+    ? ""
+    : `Enter a valid ${label.toLowerCase()} number (e.g. +44 7424 906280).`;
+}
+
+export function validUkPostcode(value: string, label = "Postcode"): string {
+  return !value.trim() || isUkPostcode(value)
+    ? ""
+    : `Enter a full UK ${label.toLowerCase()} (e.g. NW6 4TA).`;
+}
+
+export function nonNegativeNumber(value: string, label: string): string {
+  const n = Number(value);
+  return value !== "" && Number.isFinite(n) && n >= 0
+    ? ""
+    : `${label} must be a number of 0 or more.`;
+}
+
+/** Returns the first actual error from a list of validator results. */
+export function firstError(errors: Array<string | "" | undefined>): string {
+  return errors.find(Boolean) ?? "";
+}
+
 export function generateTrackingId(prefix = "MRP"): string {
   const random = [...crypto.getRandomValues(new Uint8Array(6))]
     .map((b) => b.toString(36).toUpperCase())
@@ -23,7 +73,7 @@ export function slugify(text: string): string {
 }
 
 export function validateEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return isEmail(email);
 }
 
 export function clean(value: unknown): string {

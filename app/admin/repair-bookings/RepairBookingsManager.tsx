@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import { formatPrice } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 
 type Booking = {
   _id: string;
@@ -31,6 +32,7 @@ const STATUSES = ["new", "confirmed", "scheduled", "in_progress", "completed", "
 
 export default function RepairBookingsManager() {
   const router = useRouter();
+  const toast = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -56,10 +58,15 @@ export default function RepairBookingsManager() {
       body: JSON.stringify({ status }),
     });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not update status.");
+    if (!res.ok) {
+      setError(data.error || "Could not update status.");
+      toast.error(data.error || "Could not update status.");
+      return;
+    }
     setBookings((prev) =>
       prev.map((b) => (b._id === id ? { ...b, status: data.booking.status } : b))
     );
+    toast.success(`Booking marked as "${data.booking.status}".`);
   }
 
   async function remove(id: string) {
@@ -67,9 +74,12 @@ export default function RepairBookingsManager() {
     const res = await fetch(`/api/admin/repair-bookings/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
-      return setError(data.error || "Could not delete booking.");
+      setError(data.error || "Could not delete booking.");
+      toast.error(data.error || "Could not delete booking.");
+      return;
     }
     setBookings((prev) => prev.filter((b) => b._id !== id));
+    toast.success("Booking deleted.");
   }
 
   return (

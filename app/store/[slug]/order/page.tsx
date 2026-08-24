@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
+import {
+  firstError,
+  requiredField,
+  validPhone,
+  validUkPostcode,
+} from "@/lib/utils";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 
 type DeliveryMode = "delivery" | "collect";
@@ -21,6 +28,7 @@ export default function OrderPage({ params }: { params: Promise<{ slug: string }
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(searchParams.get("cancelled") ? "Checkout was cancelled. Your phone is still reserved while you decide." : "");
+  const toast = useToast();
 
   if (!isLoaded) return <section className="section order-page"><div className="container"><div className="empty-note">Checking your account...</div></div></section>;
 
@@ -84,10 +92,22 @@ export default function OrderPage({ params }: { params: Promise<{ slug: string }
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setError("");
-    if (deliveryMode === "delivery" && (!form.line1.trim() || !form.city.trim() || !form.postcode.trim())) {
-      setError("Fill in your address, or switch to collect from store.");
-      return;
+
+    if (deliveryMode === "delivery") {
+      const validationError = firstError([
+        requiredField(form.line1, "Address"),
+        requiredField(form.city, "City"),
+        requiredField(form.postcode, "Postcode"),
+        validUkPostcode(form.postcode),
+        validPhone(form.phone, "Phone"),
+      ]);
+      if (validationError) {
+        setError(validationError);
+        toast.error(validationError);
+        return;
+      }
     }
+
     setLoading(true);
     try {
       const shippingAddress =
@@ -108,9 +128,12 @@ export default function OrderPage({ params }: { params: Promise<{ slug: string }
       const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: productData.product._id, shippingAddress }) });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error || "Could not start checkout.");
+      toast.info("Opening secure Stripe checkout...");
       window.location.href = data.url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start checkout.");
+      const message = err instanceof Error ? err.message : "Could not start checkout.";
+      setError(message);
+      toast.error(message);
       setLoading(false);
     }
   }

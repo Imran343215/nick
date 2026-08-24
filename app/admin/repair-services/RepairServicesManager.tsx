@@ -7,6 +7,7 @@ import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { ServiceTemplateShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
+import { useToast } from "@/components/ui/toast";
 
 const emptyTemplateForm = {
   name: "",
@@ -19,6 +20,7 @@ const emptyTemplateForm = {
 
 export default function RepairServicesManager() {
   const router = useRouter();
+  const toast = useToast();
   const [serviceTemplates, setServiceTemplates] = useState<ServiceTemplateShape[]>([]);
   const [templateForm, setTemplateForm] = useState(emptyTemplateForm);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
@@ -112,10 +114,15 @@ export default function RepairServicesManager() {
       }
     );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save service template.");
+    if (!res.ok) {
+      setError(data.error || "Could not save service template.");
+      toast.error(data.error || "Could not save service template.");
+      return;
+    }
 
     await loadServiceTemplates();
     closeModal();
+    toast.success(editingTemplateId ? "Service template updated." : "Service template created.");
   }
 
   async function removeTemplate(id: string) {
@@ -127,9 +134,14 @@ export default function RepairServicesManager() {
       return;
     const res = await fetch(`/api/admin/service-templates/${id}`, { method: "DELETE" });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not delete service template.");
+    if (!res.ok) {
+      setError(data.error || "Could not delete service template.");
+      toast.error(data.error || "Could not delete service template.");
+      return;
+    }
     setServiceTemplates((current) => current.filter((t) => t._id !== id));
     if (editingTemplateId === id) resetTemplateForm();
+    toast.success("Service template deleted.");
   }
 
   return (

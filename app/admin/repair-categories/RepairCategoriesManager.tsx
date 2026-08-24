@@ -7,6 +7,7 @@ import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { CategoryShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
+import { useToast } from "@/components/ui/toast";
 
 const emptyForm = {
   name: "",
@@ -19,6 +20,7 @@ const emptyForm = {
 
 export default function RepairCategoriesManager() {
   const router = useRouter();
+  const toast = useToast();
   const [categories, setCategories] = useState<CategoryShape[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -110,7 +112,11 @@ export default function RepairCategoriesManager() {
       }
     );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save category.");
+    if (!res.ok) {
+      setError(data.error || "Could not save category.");
+      toast.error(data.error || "Could not save category.");
+      return;
+    }
 
     if (editingId) {
       setCategories((current) =>
@@ -121,15 +127,21 @@ export default function RepairCategoriesManager() {
     }
     resetForm();
     setShowForm(false);
+    toast.success(editingId ? "Category updated." : "Category created.");
   }
 
   async function remove(id: string) {
     if (!window.confirm("Delete this repair category?")) return;
     const res = await fetch(`/api/admin/repair-categories/${id}`, { method: "DELETE" });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not delete category.");
+    if (!res.ok) {
+      setError(data.error || "Could not delete category.");
+      toast.error(data.error || "Could not delete category.");
+      return;
+    }
     setCategories((current) => current.filter((c) => c._id !== id));
     if (editingId === id) resetForm();
+    toast.success("Category deleted.");
   }
 
   return (

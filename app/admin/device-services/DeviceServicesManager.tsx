@@ -11,8 +11,9 @@ import type {
   RepairServiceShape,
   ServiceTemplateShape,
 } from "@/lib/repair-catalog";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, firstError, nonNegativeNumber, requiredField } from "@/lib/utils";
 import { autoSlugFromName } from "@/lib/upload";
+import { useToast } from "@/components/ui/toast";
 
 const emptyServiceForm = {
   brand: "",
@@ -29,6 +30,7 @@ const emptyServiceForm = {
 
 export default function DeviceServicesManager() {
   const router = useRouter();
+  const toast = useToast();
   const [brands, setBrands] = useState<BrandShape[]>([]);
   const [allDevices, setAllDevices] = useState<DeviceShape[]>([]);
   const [serviceTemplates, setServiceTemplates] = useState<ServiceTemplateShape[]>([]);
@@ -166,6 +168,27 @@ export default function DeviceServicesManager() {
   async function handleServiceSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
+
+    // Validation: required picks + sensible prices.
+    const validationError = firstError([
+      requiredField(serviceForm.device, "Device"),
+      requiredField(serviceForm.serviceTemplate, "Service template"),
+      requiredField(serviceForm.name, "Service name"),
+      nonNegativeNumber(serviceForm.price, "Price"),
+      serviceForm.discountPrice !== ""
+        ? nonNegativeNumber(serviceForm.discountPrice, "Discount price")
+        : "",
+      serviceForm.discountPrice !== "" &&
+      Number(serviceForm.discountPrice) >= Number(serviceForm.price)
+        ? "Discount price must be lower than the original price."
+        : "",
+    ]);
+    if (validationError) {
+      setError(validationError);
+      toast.error(validationError);
+      return;
+    }
+
     const payload = {
       device: serviceForm.device,
       serviceTemplate: serviceForm.serviceTemplate,
@@ -190,19 +213,29 @@ export default function DeviceServicesManager() {
       }
     );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save service.");
+    if (!res.ok) {
+      setError(data.error || "Could not save service.");
+      toast.error(data.error || "Could not save service.");
+      return;
+    }
 
     await loadServices(deviceFilter !== "all" ? deviceFilter : undefined);
     closeModal();
+    toast.success(editingServiceId ? "Service updated." : "Service created.");
   }
 
   async function removeService(id: string) {
     if (!window.confirm("Delete this repair service?")) return;
     const res = await fetch(`/api/admin/repair-services/${id}`, { method: "DELETE" });
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not delete service.");
+    if (!res.ok) {
+      setError(data.error || "Could not delete service.");
+      toast.error(data.error || "Could not delete service.");
+      return;
+    }
     setServices((current) => current.filter((s) => s._id !== id));
     if (editingServiceId === id) resetServiceForm();
+    toast.success("Service deleted.");
   }
 
   return (

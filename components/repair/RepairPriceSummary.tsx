@@ -146,7 +146,7 @@ export default function RepairPriceSummary({
       <button
         type="button"
         className="btn btn--repair"
-        disabled={actionDisabled || selected.length === 0}
+        disabled={actionDisabled}
         onClick={onAction}
         style={{ width: "100%" }}
       >

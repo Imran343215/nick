@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
+import { useToast } from "@/components/ui/toast";
 
 const STATUSES = ["new", "contacted", "quoted", "completed", "closed"];
 
@@ -24,6 +25,7 @@ interface QueryItem {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const toast = useToast();
   const [queries, setQueries] = useState<QueryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -62,8 +64,11 @@ export default function AdminDashboard() {
         throw new Error(data.error || "Could not delete.");
       }
       setQueries((q) => q.filter((item) => item.id !== id));
+      toast.success("Query deleted.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete.");
+      const message = err instanceof Error ? err.message : "Could not delete.";
+      setError(message);
+      toast.error(message);
     }
   }
 
@@ -87,8 +92,11 @@ export default function AdminDashboard() {
       setQueries((q) =>
         q.map((item) => (item.id === id ? { ...item, status } : item))
       );
+      toast.success(`Query marked as "${status}".`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update status.");
+      const message = err instanceof Error ? err.message : "Could not update status.";
+      setError(message);
+      toast.error(message);
     }
   }
 

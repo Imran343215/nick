@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast";
 import { formatPrice } from "@/lib/utils";
 
 interface TrackUpdate {
@@ -26,6 +27,7 @@ export default function TrackRepair() {
   const [result, setResult] = useState<TrackResult | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   async function handleTrack(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,8 +46,12 @@ export default function TrackRepair() {
         throw new Error(data.error || "No repair order found with that tracking ID.");
       }
       setResult(data.order);
+      toast.success("Repair found — status shown below.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not fetch your repair status.");
+      const message =
+        err instanceof Error ? err.message : "Could not fetch your repair status.";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

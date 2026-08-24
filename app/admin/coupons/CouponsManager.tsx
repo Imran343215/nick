@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { useToast } from "@/components/ui/toast";
 
 type Coupon = {
   _id: string;
@@ -29,6 +30,7 @@ const emptyForm = {
 
 export default function CouponsManager() {
   const router = useRouter();
+  const toast = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -82,10 +84,27 @@ export default function CouponsManager() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
+    const value = Number(form.value);
+
+    // Validation: code required, sensible discount values.
+    const validationError =
+      !form.code.trim()
+        ? "Coupon code is required."
+        : form.value === "" || !Number.isFinite(value) || value <= 0
+          ? "Discount value must be greater than 0."
+          : form.discountType === "percent" && value > 100
+            ? "Percentage discount cannot be more than 100."
+            : "";
+    if (validationError) {
+      setError(validationError);
+      toast.error(validationError);
+      return;
+    }
+
     const payload = {
       code: form.code.trim(),
       discountType: form.discountType,
-      value: Number(form.value),
+      value,
       minSubtotal: form.minSubtotal !== "" ? Number(form.minSubtotal) : undefined,
       maxDiscount: form.maxDiscount !== "" ? Number(form.maxDiscount) : undefined,
       status: form.status,
@@ -101,7 +120,11 @@ export default function CouponsManager() {
       }
     );
     const data = await res.json();
-    if (!res.ok) return setError(data.error || "Could not save coupon.");
+    if (!res.ok) {
+      setError(data.error || "Could not save coupon.");
+      toast.error(data.error || "Could not save coupon.");
+      return;
+    }
 
     if (editingId) {
       setCoupons((prev) => prev.map((c) => (c._id === editingId ? data.coupon : c)));
@@ -110,6 +133,7 @@ export default function CouponsManager() {
     }
     resetForm();
     setShowForm(false);
+    toast.success(editingId ? "Coupon updated." : "Coupon created.");
   }
 
   async function remove(id: string) {
@@ -117,10 +141,13 @@ export default function CouponsManager() {
     const res = await fetch(`/api/admin/coupons/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
-      return setError(data.error || "Could not delete coupon.");
+      setError(data.error || "Could not delete coupon.");
+      toast.error(data.error || "Could not delete coupon.");
+      return;
     }
     setCoupons((prev) => prev.filter((c) => c._id !== id));
     if (editingId === id) resetForm();
+    toast.success("Coupon deleted.");
   }
 
   return (
