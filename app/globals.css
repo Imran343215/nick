@@ -811,6 +811,104 @@ img {
   justify-self: start;
 }
 
+/* ---------- Order page delivery options & postcode lookup ---------- */
+.order-delivery-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.field label.order-delivery-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field label.order-delivery-option:hover {
+  border-color: rgba(255, 159, 28, 0.4);
+}
+
+.field label.order-delivery-option--active {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 3px rgba(255, 159, 28, 0.15);
+}
+
+.order-delivery-option input[type="radio"] {
+  width: auto;
+  accent-color: var(--accent-strong);
+  margin-top: 0.25rem;
+}
+
+.order-delivery-option strong {
+  display: block;
+  font-weight: 700;
+}
+
+.order-delivery-option small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.postcode-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.postcode-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.postcode-row .btn {
+  padding: 0.55rem 1rem;
+  white-space: nowrap;
+}
+
+.postcode-msg {
+  font-size: 0.8rem;
+}
+
+.postcode-msg--ok {
+  color: var(--success);
+}
+
+.postcode-msg--error {
+  color: var(--danger);
+}
+
+.postcode-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.postcode-suggestions button {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.postcode-suggestions button:hover {
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
+}
+
 .order-state {
   text-align: center;
   min-height: 55vh;
