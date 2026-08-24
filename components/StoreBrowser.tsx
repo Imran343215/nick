@@ -33,6 +33,42 @@ export default function StoreBrowser({
     return withProducts;
   }, [categories]);
 
+  // Active filters for quick display & removal
+  const activeFilters = useMemo(() => {
+    const filters = [];
+    if (active !== "all") {
+      const cat = chips.find((c) => c.name === active);
+      filters.push({
+        key: "category",
+        label: cat?.name || active,
+        value: active,
+        remove: () => setActive("all"),
+      });
+    }
+    if (condition !== "all") {
+      const labels: Record<Condition, string> = {
+        all: "All conditions",
+        new: "New",
+        "second-hand": "Second-hand",
+      };
+      filters.push({
+        key: "condition",
+        label: labels[condition],
+        value: condition,
+        remove: () => setCondition("all"),
+      });
+    }
+    return filters;
+  }, [active, condition, chips]);
+
+  const hasActiveFilters = activeFilters.length > 0;
+
+  const resetAllFilters = () => {
+    setActive("all");
+    setCondition("all");
+    setQuery("");
+  };
+
   const visible = useMemo(() => {
     let list = products;
 
@@ -81,17 +117,36 @@ export default function StoreBrowser({
     return list;
   }, [products, active, condition, query, sort]);
 
-  return (
+    return (
     <div className="store-browser">
+      {/* Results summary */}
+      <div className="store-results-summary">
+        <span className="store-results-count">
+          {visible.length} product{visible.length !== 1 ? "s" : ""} found
+        </span>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            className="store-clear-all"
+            onClick={resetAllFilters}
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {/* Toolbar: search + sort */}
       <div className="store-toolbar">
-        <input
-          type="search"
-          className="store-search"
-          placeholder="Search phones, brands, categories…"
-          aria-label="Search products"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <div className="store-search-wrapper">
+          <input
+            type="search"
+            className="store-search"
+            placeholder="Search phones, brands, categories…"
+            aria-label="Search products"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
         <select
           className="store-sort"
           aria-label="Sort products"
@@ -105,50 +160,99 @@ export default function StoreBrowser({
         </select>
       </div>
 
-      <div className="store-filter" role="group" aria-label="Filter by condition">
-        {(
-          [
-            { value: "all", label: "All conditions" },
-            { value: "new", label: "New" },
-            { value: "second-hand", label: "Second-hand" },
-          ] as { value: Condition; label: string }[]
-        ).map((opt) => (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={condition === opt.value}
-            key={opt.value}
-            className={`store-filter__chip${condition === opt.value ? " store-filter__chip--active" : ""}`}
-            onClick={() => setCondition(opt.value)}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
+      {/* Active filters display */}
+      {hasActiveFilters && (
+        <div className="store-active-filters">
+          {activeFilters.map((f) => (
+            <span key={f.key} className="store-active-filter">
+              {f.label}
+                            <button
+                type="button"
+                className="store-active-filter__remove"
+                onClick={f.remove}
+                aria-label={`Remove ${f.key} filter`}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6l12 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
 
-      {chips.length > 0 && (
-        <div className="store-filter" role="group" aria-label="Filter by category">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={active === "all"}
-            className={`store-filter__chip${active === "all" ? " store-filter__chip--active" : ""}`}
-            onClick={() => setActive("all")}
-          >
-            All <span className="store-filter__count">{products.length}</span>
-          </button>
-          {chips.map((cat) => (
+      {/* Condition filters */}
+      <div className="store-filter-group">
+        <span className="store-filter__label">Condition</span>
+        <div
+          className="store-filter-chips"
+          role="group"
+          aria-label="Filter by condition"
+        >
+          {(
+            [
+              { value: "all", label: "All conditions" },
+              { value: "new", label: "New" },
+              { value: "second-hand", label: "Second-hand" },
+            ] as { value: Condition; label: string }[]
+          ).map((opt) => (
             <button
               type="button"
               role="tab"
-              aria-selected={active === cat.name}
-              key={cat._id}
-              className={`store-filter__chip${active === cat.name ? " store-filter__chip--active" : ""}`}
-              onClick={() => setActive(cat.name)}
+              aria-selected={condition === opt.value}
+              key={opt.value}
+              className={`store-filter__chip${condition === opt.value ? " store-filter__chip--active" : ""}`}
+              onClick={() => setCondition(opt.value)}
             >
-              {cat.name} <span className="store-filter__count">{cat.count}</span>
+              {opt.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Category filters */}
+      {chips.length > 0 && (
+        <div className="store-filter-group">
+          <span className="store-filter__label">Category</span>
+          <div
+            className="store-filter-chips"
+            role="group"
+            aria-label="Filter by category"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={active === "all"}
+              className={`store-filter__chip${active === "all" ? " store-filter__chip--active" : ""}`}
+              onClick={() => setActive("all")}
+            >
+              All <span className="store-filter__count">{products.length}</span>
+            </button>
+            {chips.map((cat) => (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={active === cat.name}
+                key={cat._id}
+                className={`store-filter__chip${active === cat.name ? " store-filter__chip--active" : ""}`}
+                onClick={() => setActive(cat.name)}
+              >
+                {cat.name}{" "}
+                <span className="store-filter__count">{cat.count}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
