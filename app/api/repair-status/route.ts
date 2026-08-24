@@ -1,73 +1,56 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import RepairOrder, {
-  ORDER_STATUS_DESCRIPTIONS,
-  type OrderStatus,
-} from "@/models/RepairOrder";
-import RepairQuery from "@/models/RepairQuery";
+import RepairBooking from "@/models/RepairBooking";
 
 export const dynamic = "force-dynamic";
 
-function serializeOrder(order: Record<string, any>) {
-  const status = order.status as OrderStatus;
-  return {
-    trackingId: order.trackingId,
-    customerName: order.customerName,
-    device: order.device,
-    service: order.service,
-    price: order.price,
-    status: order.status,
-    statusDescription:
-      ORDER_STATUS_DESCRIPTIONS[status] ?? "Status update pending.",
-    etaDays: order.etaDays,
-    updates: (order.updates ?? []).map((u: Record<string, any>) => ({
-      status: u.status,
-      note: u.note ?? "",
-      at: new Date(u.at).toISOString(),
-    })),
-  };
-}
-
-const QUERY_STATUS_DESCRIPTIONS: Record<string, string> = {
-  new: "Your repair request has been received and is awaiting review.",
-  contacted: "Our team has contacted you about your repair request.",
-  quoted: "Your repair request has been reviewed and a quote is available.",
-  completed: "Your repair request has been completed.",
-  closed: "This repair request is closed.",
+const BOOKING_STATUS_DESCRIPTIONS: Record<string, string> = {
+  new: "Your repair booking has been received and is awaiting confirmation.",
+  confirmed: "Your booking is confirmed — our technician will arrive as scheduled.",
+  scheduled: "Your repair visit has been scheduled.",
+  in_progress: "Your device is currently being repaired.",
+  completed: "Your repair has been completed. Thank you for choosing iTECHNICK.",
+  cancelled: "This booking was cancelled.",
 };
 
-function serializeQuery(query: Record<string, any>) {
+function serializeBooking(booking: Record<string, any>) {
+  const status = booking.status as string;
   return {
-    trackingId: query.trackingId,
-    customerName: query.name,
-    device: [query.deviceBrand, query.deviceModel].filter(Boolean).join(" "),
-    service: query.issue,
-    status: query.status,
+    trackingId: booking.trackingId,
+    bookingNumber: booking.bookingNumber,
+    customerName: booking.customerName,
+    device: [booking.brandName, booking.deviceName].filter(Boolean).join(" "),
+    service: (booking.services ?? [])
+      .map((s: Record<string, any>) => s.name)
+      .join(", "),
+    price: booking.total,
+    status,
     statusDescription:
-      QUERY_STATUS_DESCRIPTIONS[query.status] ?? "Status update pending.",
+      BOOKING_STATUS_DESCRIPTIONS[status] ?? "Status update pending.",
+    pickupDate: booking.pickupDate
+      ? new Date(booking.pickupDate).toISOString()
+      : undefined,
     updates: [
       {
-        status: query.status,
-        note: "Repair request status",
-        at: new Date(query.updatedAt ?? query.createdAt).toISOString(),
+        status,
+        note: `Booking ${booking.bookingNumber} received`,
+        at: new Date(booking.updatedAt ?? booking.createdAt).toISOString(),
       },
     ],
   };
 }
 
 /**
- * POST /api/repair-status — visitors check the status of a repair order
- * by entering the tracking ID they received.
+ * POST /api/repair-status — visitors check the status of a booked repair
+ * by entering the tracking ID (or booking number) from their confirmation.
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const trackingId =
-      typeof body.trackingId === "string"
-        ? body.trackingId.trim().toUpperCase()
-        : "";
+    const code =
+      typeof body.trackingId === "string" ? body.trackingId.trim().toUpperCase() : "";
 
-    if (!trackingId) {
+    if (!code) {
       return NextResponse.json(
         { ok: false, error: "A tracking ID is required." },
         { status: 400 }
@@ -75,24 +58,23 @@ export async function POST(request: Request) {
     }
 
     await connectDB();
-    const order = await RepairOrder.findOne({ trackingId }).lean().exec();
+    const booking = await RepairBooking.findOne({
+      $or: [{ trackingId: code }, { bookingNumber: code }],
+    })
+      .lean()
+      .exec();
 
-    if (order) {
-      return NextResponse.json({ ok: true, order: serializeOrder(order) });
-    }
-
-    const query = await RepairQuery.findOne({ trackingId }).lean().exec();
-    if (!query) {
+    if (!booking) {
       return NextResponse.json(
         {
           ok: false,
-          error: "No repair order found with that tracking ID.",
+          error: "No repair booking found with that tracking ID.",
         },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ ok: true, order: serializeQuery(query) });
+    return NextResponse.json({ ok: true, order: serializeBooking(booking) });
   } catch (err) {
     console.error("[api POST /api/repair-status]", err);
     return NextResponse.json(

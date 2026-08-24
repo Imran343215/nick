@@ -64,8 +64,8 @@ export default function TrackRepair() {
           <div className="section__eyebrow">Track your repair</div>
           <h2 className="section__title">Check Repair Status</h2>
           <p className="section__lead">
-            Enter the tracking ID you received with your quote request or repair
-            order to see its current status.
+            Enter the tracking ID from your booking confirmation to see the
+            current status of your repair.
           </p>
         </div>
 

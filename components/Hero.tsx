@@ -18,8 +18,8 @@ export default function Hero() {
             quotes, skilled hands and a 90-day warranty on every repair.
           </p>
           <div className="hero__actions">
-            <a href="#quote" className="btn btn--primary">
-              Get a Free Quote <span aria-hidden="true">↗</span>
+            <a href="/repair" className="btn btn--primary">
+              Book a Repair <span aria-hidden="true">↗</span>
             </a>
             <a href="#services" className="btn btn--ghost">
               Explore services

@@ -1,6 +1,6 @@
 const footerLinks = [
+  { href: "/repair", label: "Book a Repair" },
   { href: "#services", label: "Services" },
-  { href: "#quote", label: "Get a Quote" },
   { href: "#track", label: "Track Repair" },
   { href: "#contact", label: "Contact" },
 ];

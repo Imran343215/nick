@@ -1,5 +1,5 @@
 import AdminLogin from "./LoginForm";
-import AdminDashboard from "./AdminDashboard";
+import RepairBookingsManager from "./repair-bookings/RepairBookingsManager";
 import { isAdminAuthed } from "@/lib/auth";
 
 // Re-check the session cookie on every request (no caching).
@@ -12,5 +12,5 @@ export default async function AdminPage() {
     return <AdminLogin />;
   }
 
-  return <AdminDashboard />;
+  return <RepairBookingsManager />;
 }

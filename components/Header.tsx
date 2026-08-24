@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 const links = [
@@ -9,7 +10,6 @@ const links = [
   { href: "/store", label: "Store" },
   { href: "/orders", label: "My order" },
   { href: "#how-it-works", label: "How It Works" },
-  { href: "#quote", label: "Get a Quote" },
   { href: "#track", label: "Track Repair" },
   { href: "#contact", label: "Contact" },
 ];
@@ -38,9 +38,9 @@ export default function Header() {
             </li>
           ))}
           <li>
-            <a href="#quote" className="btn btn--accent nav__cta">
+            <Link href="/repair" className="btn btn--accent nav__cta" onClick={() => setOpen(false)}>
               Book a Repair
-            </a>
+            </Link>
           </li>
           <li className="nav__auth-group">
             <Show when="signed-out">

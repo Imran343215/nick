@@ -3,13 +3,13 @@ import BrandIcon, { type IconName } from "@/components/BrandIcon";
 const steps = [
   {
     icon: "note" as IconName,
-    title: "Send a repair query",
-    desc: "Tell us your device, model and what's wrong using the quote form.",
+    title: "Pick your repair",
+    desc: "Choose your device category, brand and model from the repair catalogue.",
   },
   {
     icon: "chat" as IconName,
-    title: "Get a free quote",
-    desc: "We reply within the hour with transparent, no-obligation pricing.",
+    title: "Select services & book",
+    desc: "Add the services you need, pick a pickup date and confirm your booking online.",
   },
   {
     icon: "wrench" as IconName,

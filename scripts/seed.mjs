@@ -1,11 +1,9 @@
 // Seed script for the mobile repair shop.
 //
-// Populates the repair Services catalog and a demo RepairOrder (usable with
-// tracking ID MRP-DEMO-1) so the landing page and tracking feature have data.
+// Populates the repair Services catalog shown on the landing page.
 //
 // Usage:
-//   npm run seed          → create services + demo order (idempotent)
-//   npm run seed --demo   → also create a sample RepairQuery
+//   npm run seed          → create services (idempotent)
 //
 // Run from the project root with:
 //   node --env-file=.env.local scripts/seed.mjs [--demo]
@@ -59,66 +57,8 @@ const ServiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const RepairOrderSchema = new mongoose.Schema(
-  {
-    trackingId: { type: String, required: true, unique: true, index: true },
-    customerName: { type: String, required: true, trim: true },
-    device: { type: String, required: true, trim: true },
-    service: { type: String, default: "General repair", trim: true },
-    price: { type: Number, required: true, min: 0 },
-    status: {
-      type: String,
-      enum: ["received", "diagnosing", "repairing", "ready", "delivered", "cancelled"],
-      default: "received",
-    },
-    etaDays: { type: Number, default: 1 },
-    updates: [
-      {
-        status: String,
-        note: String,
-        at: { type: Date, default: Date.now },
-      },
-    ],
-  },
-  { timestamps: true }
-);
-
-const RepairQuerySchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    email: {
-      type: String,
-      required: true,
-      lowercase: true,
-      trim: true,
-      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    },
-    phone: { type: String, required: true, trim: true },
-    deviceBrand: { type: String, required: true, trim: true },
-    deviceModel: { type: String, default: "", trim: true },
-    issue: { type: String, required: true, trim: true },
-    message: { type: String, default: "", trim: true },
-    preferredDate: { type: Date },
-    status: {
-      type: String,
-      enum: ["new", "contacted", "quoted", "completed", "closed"],
-      default: "new",
-    },
-    trackingId: { type: String, required: true, unique: true, index: true },
-  },
-  { timestamps: true }
-);
-
 function getServiceModel() {
   return mongoose.models.Service || mongoose.model("Service", ServiceSchema);
-}
-
-function getOrderModel() {
-  return mongoose.models.RepairOrder || mongoose.model("RepairOrder", RepairOrderSchema);
-}
-
-function getQueryModel() {
-  return mongoose.models.RepairQuery || mongoose.model("RepairQuery", RepairQuerySchema);
 }
 
 /* ---------- Seed data ---------- */
@@ -186,46 +126,6 @@ const services = [
   },
 ];
 
-const demoOrder = {
-  trackingId: "MRP-DEMO-1",
-  customerName: "Demo Customer",
-  device: "Samsung Galaxy S23",
-  service: "Battery Replacement",
-  price: 49,
-  status: "repairing",
-  etaDays: 1,
-  updates: [
-    {
-      status: "received",
-      note: "Device received at our Springfield workshop",
-      at: new Date(Date.now() - 3 * 86400000),
-    },
-    {
-      status: "diagnosing",
-      note: "Battery health at 72%; replacement recommended",
-      at: new Date(Date.now() - 2 * 86400000),
-    },
-    {
-      status: "repairing",
-      note: "Installing premium battery — ETA 1 day",
-      at: new Date(Date.now() - 1 * 86400000),
-    },
-  ],
-};
-
-const demoQuery = {
-  name: "Demo Customer",
-  email: "demo@example.com",
-  phone: "+1 555 010-9999",
-  deviceBrand: "Samsung",
-  deviceModel: "Galaxy S23",
-  issue: "Battery drains too fast",
-  message: "Battery drops from 100% to 10% in a couple of hours.",
-  preferredDate: new Date(Date.now() + 2 * 86400000),
-  status: "quoted",
-  trackingId: "MRP-DEMO-Q1",
-};
-
 async function main() {
   await ensureSrvResolvable();
   await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 20000 });
@@ -233,8 +133,6 @@ async function main() {
   console.log("Connected to", safeUri);
 
   const Service = getServiceModel();
-  const RepairOrder = getOrderModel();
-  const RepairQuery = getQueryModel();
 
   // Services (idempotent upsert by slug).
   let inserted = 0;
@@ -248,32 +146,6 @@ async function main() {
   console.log(
     `Services catalog: ${await Service.countDocuments()} total (${inserted} new).`
   );
-
-  // Demo repair order (for the tracking feature on the landing page).
-  const orderExists = await RepairOrder.findOne({
-    trackingId: demoOrder.trackingId,
-  });
-  if (!orderExists) {
-    await RepairOrder.create(demoOrder);
-    console.log(
-      `Demo repair order created → use tracking ID "${demoOrder.trackingId}" to test the tracker.`
-    );
-  } else {
-    console.log("Demo repair order already exists.");
-  }
-
-  // Optional sample query (--demo flag).
-  if (process.argv.includes("--demo")) {
-    const queryExists = await RepairQuery.findOne({
-      trackingId: demoQuery.trackingId,
-    });
-    if (!queryExists) {
-      await RepairQuery.create(demoQuery);
-      console.log(`Sample repair query created → ${demoQuery.trackingId}`);
-    } else {
-      console.log("Sample repair query already exists.");
-    }
-  }
 
   await mongoose.disconnect();
   console.log("Done.");

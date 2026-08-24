@@ -2,7 +2,6 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
 import HowItWorks from "@/components/HowItWorks";
-import QuoteForm from "@/components/QuoteForm";
 import TrackRepair from "@/components/TrackRepair";
 import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
@@ -26,7 +25,6 @@ export default async function Home() {
         <Services services={services} />
         <StoreSection products={products} />
         <HowItWorks />
-        <QuoteForm />
         <TrackRepair />
         <Testimonials />
         <Contact />
