@@ -335,7 +335,7 @@ img {
 }
 
 .stat {
-  background: rgba(15, 21, 39, 0.56);
+  background: color-mix(in srgb, var(--card) 56%, var(--bg));
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.2rem 1rem;
@@ -355,7 +355,7 @@ img {
   background-position: center;
   background-size: cover;
   border: 1px solid rgba(148, 163, 184, 0.24);
-  box-shadow: 24px 24px 0 rgba(255, 159, 28, 0.12), var(--shadow);
+  box-shadow: 24px 24px 0 color-mix(in srgb, var(--accent-strong) 12%, transparent), var(--shadow);
   transform: rotate(2deg);
 }
 
@@ -367,7 +367,7 @@ img {
   align-items: center;
   gap: 0.7rem;
   padding: 0.85rem 1rem;
-  background: rgba(15, 21, 39, 0.92);
+  background: color-mix(in srgb, var(--card) 92%, var(--bg));
   border: 1px solid rgba(255, 159, 28, 0.35);
   border-radius: 12px;
   box-shadow: var(--shadow);
@@ -427,7 +427,7 @@ img {
 }
 
 .section--tint {
-  background: rgba(15, 21, 39, 0.45);
+  background: color-mix(in srgb, var(--card) 45%, var(--bg));
   border-block: 1px solid var(--border);
 }
 
@@ -2352,7 +2352,11 @@ img {
 
 /* ---------- Repair Booking Page ---------- */
 .repair-page--booking {
-  background: linear-gradient(180deg, var(--bg) 0%, rgba(15, 21, 39, 0.6) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--bg) 0%,
+    color-mix(in srgb, var(--card) 60%, transparent) 100%
+  );
 }
 
 .repair-container {
@@ -2777,7 +2781,7 @@ img {
   flex-direction: column;
   gap: 0.6rem;
   padding: 1rem;
-  background: rgba(15, 21, 39, 0.5);
+  background: color-mix(in srgb, var(--card) 50%, var(--bg));
   border-radius: 10px;
   margin-bottom: 1rem;
 }
