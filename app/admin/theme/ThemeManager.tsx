@@ -247,6 +247,7 @@ export default function ThemeManager() {
         type: "theme-preview",
         cssVars: buildPreviewVars(form),
         fonts: { body: form.fonts.body, display: form.fonts.display },
+        heroImage: form.hero.imageUrl,
       },
       window.location.origin
     );
@@ -636,6 +637,10 @@ export default function ThemeManager() {
                       <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], "hero")} />
                       {uploadingHero ? "Uploading…" : "Upload hero image"}
                     </label>
+                    {form.hero.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={form.hero.imageUrl} alt="Hero image preview" className="catalog-admin-thumb" style={{ marginTop: "0.5rem" }} />
+                    )}
                   </div>
                 </div>
 

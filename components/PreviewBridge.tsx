@@ -1,21 +1,43 @@
 "use client";
 
-import { useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 /**
- * PreviewBridge — listens for theme-preview messages posted by the admin
- * Theme Customizer's live preview iframe and applies the given CSS variable
- * overrides (plus optional Google Fonts) to the document instantly, so
- * unsaved edits are visible without a reload or a save.
+ * PreviewBridge — wraps the landing page and listens for theme-preview
+ * messages posted by the admin Theme Customizer's live preview iframe.
+ * It applies CSS variable overrides instantly and exposes content
+ * overrides (e.g. an unsaved hero image URL) to client components
+ * through usePreviewOverrides().
  */
 export interface PreviewMessage {
   type: "theme-preview";
   /** Full "custom-property name → value" map, e.g. { "--bg": "#fff" }. */
   cssVars: Record<string, string>;
   fonts?: { body: string; display: string };
+  /** Unsaved hero image URL ("") to clear back to none. */
+  heroImage?: string;
 }
 
-export default function PreviewBridge() {
+interface PreviewOverrides {
+  heroImage?: string;
+}
+
+const PreviewCtx = createContext<PreviewOverrides>({});
+
+/** Client components read live (unsaved) preview overrides from here. */
+export function usePreviewOverrides(): PreviewOverrides {
+  return useContext(PreviewCtx);
+}
+
+export default function PreviewBridge({ children }: { children: ReactNode }) {
+  const [overrides, setOverrides] = useState<PreviewOverrides>({});
+
   useEffect(() => {
     function applyFonts(body: string, display: string) {
       const fam = (name: string) =>
@@ -48,11 +70,15 @@ export default function PreviewBridge() {
       if (data.fonts?.body && data.fonts?.display) {
         applyFonts(data.fonts.body, data.fonts.display);
       }
+
+      if (typeof data.heroImage === "string") {
+        setOverrides((prev) => ({ ...prev, heroImage: data.heroImage }));
+      }
     }
 
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, []);
 
-  return null;
+  return <PreviewCtx.Provider value={overrides}>{children}</PreviewCtx.Provider>;
 }

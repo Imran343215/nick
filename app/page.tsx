@@ -42,9 +42,7 @@ export default async function Home() {
   };
 
   return (
-    <>
-      {/* Live-preview receiver for the admin Theme Customizer iframe. */}
-      <PreviewBridge />
+    <PreviewBridge>
       <Header
         brand={{
           name: theme.brandName,
@@ -60,6 +58,6 @@ export default async function Home() {
           ))}
       </main>
       <Footer brandName={theme.brandName} text={theme.footerText} />
-    </>
+    </PreviewBridge>
   );
 }

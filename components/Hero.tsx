@@ -1,3 +1,6 @@
+"use client";
+
+import { usePreviewOverrides } from "@/components/PreviewBridge";
 import type { ThemeHero } from "@/lib/theme";
 
 const FALLBACK_STATS = [
@@ -21,7 +24,10 @@ const DEFAULT_HERO: ThemeHero = {
 };
 
 export default function Hero({ content }: { content?: ThemeHero }) {
-  const c: ThemeHero = { ...DEFAULT_HERO, ...(content ?? {}) };
+  const preview = usePreviewOverrides();
+  const base: ThemeHero = { ...DEFAULT_HERO, ...(content ?? {}) };
+  // Live preview can override the saved image instantly (admin customizer).
+  const c: ThemeHero = { ...base, imageUrl: preview.heroImage ?? base.imageUrl };
   const stats = c.stats.length ? c.stats : FALLBACK_STATS;
 
   return (
