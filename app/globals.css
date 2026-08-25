@@ -128,7 +128,8 @@ img {
 
 .btn--ghost:hover {
   border-color: var(--accent-strong);
-  color: #fff;
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent-strong) 8%, transparent);
 }
 
 /* ---------- Header ---------- */
@@ -202,7 +203,7 @@ img {
 }
 
 .nav__link:hover {
-  color: #fff;
+  color: var(--text);
 }
 
 .nav__cta {
