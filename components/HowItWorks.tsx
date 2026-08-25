@@ -1,4 +1,5 @@
 import BrandIcon, { type IconName } from "@/components/BrandIcon";
+import type { SectionHeader } from "@/lib/theme";
 
 const steps = [
   {
@@ -23,16 +24,25 @@ const steps = [
   },
 ];
 
-export default function HowItWorks() {
+const DEFAULT_HEADER: SectionHeader = {
+  eyebrow: "Simple process",
+  title: "How It Works",
+  lead: "From cracked screen to working device in four easy steps.",
+};
+
+export default function HowItWorks({
+  header,
+}: {
+  header?: SectionHeader;
+}) {
+  const h = { ...DEFAULT_HEADER, ...(header ?? {}) };
   return (
     <section className="section section--tint" id="how-it-works">
       <div className="container">
         <div className="section__header">
-          <div className="section__eyebrow">Simple process</div>
-          <h2 className="section__title">How It Works</h2>
-          <p className="section__lead">
-            From cracked screen to working device in four easy steps.
-          </p>
+          <div className="section__eyebrow">{h.eyebrow}</div>
+          <h2 className="section__title">{h.title}</h2>
+          <p className="section__lead">{h.lead}</p>
         </div>
         <div className="steps">
           {steps.map((step, index) => (

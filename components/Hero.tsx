@@ -1,28 +1,44 @@
-const stats = [
+import type { ThemeHero } from "@/lib/theme";
+
+const FALLBACK_STATS = [
   { value: "12,000+", label: "Devices repaired" },
   { value: "24hr", label: "Avg. turnaround" },
   { value: "90-day", label: "Warranty" },
 ];
 
-export default function Hero() {
+const DEFAULT_HERO: ThemeHero = {
+  badge: "● Kilburn's trusted repair desk",
+  title: "Your device deserves a",
+  titleHighlight: "second life.",
+  subtitle:
+    "Expert phone, laptop and gadget repair at 140 Kilburn High Road. Clear quotes, skilled hands and a 90-day warranty on every repair.",
+  primaryLabel: "Book a Repair ↗",
+  primaryHref: "/repair",
+  secondaryLabel: "Explore services",
+  secondaryHref: "#services",
+  imageUrl: "",
+  stats: FALLBACK_STATS,
+};
+
+export default function Hero({ content }: { content?: ThemeHero }) {
+  const c: ThemeHero = { ...DEFAULT_HERO, ...(content ?? {}) };
+  const stats = c.stats.length ? c.stats : FALLBACK_STATS;
+
   return (
     <section className="hero">
       <div className="hero__grid container">
         <div className="hero__content">
-          <span className="hero__badge">● Kilburn's trusted repair desk</span>
+          {c.badge && <span className="hero__badge">{c.badge}</span>}
           <h1 className="hero__title">
-            Your device deserves a <span>second life.</span>
+            {c.title} <span>{c.titleHighlight}</span>
           </h1>
-          <p className="hero__subtitle">
-            Expert phone, laptop and gadget repair at 140 Kilburn High Road. Clear
-            quotes, skilled hands and a 90-day warranty on every repair.
-          </p>
+          <p className="hero__subtitle">{c.subtitle}</p>
           <div className="hero__actions">
-            <a href="/repair" className="btn btn--primary">
-              Book a Repair <span aria-hidden="true">↗</span>
+            <a href={c.primaryHref} className="btn btn--primary">
+              {c.primaryLabel}
             </a>
-            <a href="#services" className="btn btn--ghost">
-              Explore services
+            <a href={c.secondaryHref} className="btn btn--ghost">
+              {c.secondaryLabel}
             </a>
           </div>
           <div className="hero__stats">
@@ -34,8 +50,15 @@ export default function Hero() {
             ))}
           </div>
         </div>
-        <div className="hero__visual" aria-label="iPhone 17 in sage green, featured image from Gizmodo">
-          <div className="hero__image" />
+        <div className="hero__visual" aria-label="Featured device visual">
+          <div
+            className={`hero__image${c.imageUrl ? " hero__image--photo" : ""}`}
+          >
+            {c.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={c.imageUrl} alt="" />
+            ) : null}
+          </div>
           <div className="hero__visual-note">
             <span className="hero__visual-check">✓</span>
             <span><strong>Repair with care</strong><small>Same-day options available</small></span>

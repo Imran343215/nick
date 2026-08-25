@@ -9,27 +9,54 @@ import Footer from "@/components/Footer";
 import StoreSection from "@/components/StoreSection";
 import { fetchServices } from "@/lib/services";
 import { fetchProducts } from "@/lib/products";
+import { fetchTheme, type SectionKey } from "@/lib/theme";
+import { Fragment, type ReactNode } from "react";
 
-// Render fresh services on every request (no static caching).
+// Render fresh services + theme on every request (no static caching).
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const services = await fetchServices();
-  const products = await fetchProducts();
+  const [services, products, theme] = await Promise.all([
+    fetchServices(),
+    fetchProducts(),
+    fetchTheme(),
+  ]);
+
+  // Sections rendered in admin-defined order, honouring enable/disable.
+  const sections: Record<SectionKey, ReactNode> = {
+    hero: <Hero content={theme.hero} />,
+    services: <Services services={services} header={theme.headers.services} />,
+    store: <StoreSection products={products} header={theme.headers.store} />,
+    howItWorks: <HowItWorks header={theme.headers.howItWorks} />,
+    trackRepair: <TrackRepair header={theme.headers.trackRepair} />,
+    testimonials: (
+      <Testimonials
+        header={theme.headers.testimonials}
+        items={theme.testimonials}
+      />
+    ),
+    contact: (
+      <Contact header={theme.headers.contact} cards={theme.contactCards} />
+    ),
+  };
 
   return (
     <>
-      <Header />
+      <Header
+        brand={{
+          name: theme.brandName,
+          initials: theme.brandInitials,
+          logoUrl: theme.logoUrl,
+        }}
+      />
       <main>
-        <Hero />
-        <Services services={services} />
-        <StoreSection products={products} />
-        <HowItWorks />
-        <TrackRepair />
-        <Testimonials />
-        <Contact />
+        {theme.sections.order
+          .filter((key) => theme.sections.enabled[key])
+          .map((key) => (
+            <Fragment key={key}>{sections[key]}</Fragment>
+          ))}
       </main>
-      <Footer />
+      <Footer brandName={theme.brandName} text={theme.footerText} />
     </>
   );
 }

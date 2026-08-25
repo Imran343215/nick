@@ -5,13 +5,19 @@ const footerLinks = [
   { href: "#contact", label: "Contact" },
 ];
 
-export default function Footer() {
+export default function Footer({
+  brandName = "iTECHNICK LTD",
+  text = "All rights reserved",
+}: {
+  brandName?: string;
+  text?: string;
+}) {
   const year = new Date().getFullYear();
 
   return (
     <footer className="footer">
       <div className="container footer__inner">
-        <span>© {year} iTECHNICK LTD · All rights reserved</span>
+        <span>© {year} {brandName} · {text}</span>
         <ul className="footer__links">
           {footerLinks.map((link) => (
             <li key={link.href}>

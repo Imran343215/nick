@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { formatPrice } from "@/lib/utils";
+import type { SectionHeader } from "@/lib/theme";
+
+const DEFAULT_HEADER: SectionHeader = {
+  eyebrow: "Track your repair",
+  title: "Check Repair Status",
+  lead: "Enter the tracking ID from your booking confirmation to see the current status of your repair.",
+};
 
 interface TrackUpdate {
   status: string;
@@ -22,12 +29,17 @@ interface TrackResult {
   updates: TrackUpdate[];
 }
 
-export default function TrackRepair() {
+export default function TrackRepair({
+  header,
+}: {
+  header?: SectionHeader;
+}) {
   const [id, setId] = useState("");
   const [result, setResult] = useState<TrackResult | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const h = { ...DEFAULT_HEADER, ...(header ?? {}) };
 
   async function handleTrack(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,12 +73,9 @@ export default function TrackRepair() {
     <section className="section" id="track">
       <div className="container">
         <div className="section__header">
-          <div className="section__eyebrow">Track your repair</div>
-          <h2 className="section__title">Check Repair Status</h2>
-          <p className="section__lead">
-            Enter the tracking ID from your booking confirmation to see the
-            current status of your repair.
-          </p>
+          <div className="section__eyebrow">{h.eyebrow}</div>
+          <h2 className="section__title">{h.title}</h2>
+          <p className="section__lead">{h.lead}</p>
         </div>
 
         <form className="track-form" onSubmit={handleTrack}>

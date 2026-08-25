@@ -1,6 +1,13 @@
 import { type ServiceShape } from "@/lib/services";
 import { formatPrice } from "@/lib/utils";
 import BrandIcon, { type IconName } from "@/components/BrandIcon";
+import type { SectionHeader } from "@/lib/theme";
+
+const DEFAULT_HEADER: SectionHeader = {
+  eyebrow: "What we fix",
+  title: "Repair Services",
+  lead: "Loaded live from our database. Transparent starting prices — no hidden fees, ever.",
+};
 
 function serviceIcon(icon: string, category: string): IconName {
   const icons: Record<string, IconName> = {
@@ -16,19 +23,19 @@ function serviceIcon(icon: string, category: string): IconName {
 
 export default function Services({
   services,
+  header,
 }: {
   services: ServiceShape[];
+  header?: SectionHeader;
 }) {
+  const h = { ...DEFAULT_HEADER, ...(header ?? {}) };
   return (
     <section className="section" id="services">
       <div className="container">
         <div className="section__header">
-          <div className="section__eyebrow">What we fix</div>
-          <h2 className="section__title">Repair Services</h2>
-          <p className="section__lead">
-            Loaded live from our database. Transparent starting prices — no hidden
-            fees, ever.
-          </p>
+          <div className="section__eyebrow">{h.eyebrow}</div>
+          <h2 className="section__title">{h.title}</h2>
+          <p className="section__lead">{h.lead}</p>
         </div>
 
         {services.length === 0 ? (

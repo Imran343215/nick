@@ -12,15 +12,36 @@ const links = [
   { href: "#contact", label: "Contact" },
 ];
 
-export default function Header() {
+export interface HeaderBrand {
+  name?: string;
+  initials?: string;
+  logoUrl?: string;
+}
+
+export default function Header({ brand }: { brand?: HeaderBrand }) {
   const [open, setOpen] = useState(false);
+
+  const name = brand?.name || "iTECHNICK LTD";
+  const initials = brand?.initials || "iT";
+  const logoUrl = brand?.logoUrl || "";
+  const [firstWord, ...restWords] = name.split(" ");
 
   return (
     <header className="header">
       <div className="container nav">
         <div className="nav__brand">
-          <span className="nav__brand-icon" aria-hidden="true">iT</span>
-          <span className="nav__brand-name">iTECHNICK <small>LTD</small></span>
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={`${name} logo`} className="nav__logo" />
+          ) : (
+            <span className="nav__brand-icon" aria-hidden="true">{initials}</span>
+          )}
+          <span className="nav__brand-name">
+            {firstWord}
+            {restWords.length > 0 && (
+              <small>{" "}{restWords.join(" ")}</small>
+            )}
+          </span>
         </div>
 
         <ul className={`nav__links${open ? " nav__links--open" : ""}`}>
