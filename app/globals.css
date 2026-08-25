@@ -75,7 +75,6 @@ img {
   padding: 0.85rem 1.7rem;
   border-radius: 999px;
   font-weight: 600;
-  border: 1px solid transparent;
   cursor: pointer;
   font-size: 0.98rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
