@@ -15,6 +15,7 @@ export interface ISiteTheme {
 
   colors: Record<string, string>;
   fonts: { body: string; display: string };
+  gradient: { from: string; to: string; angle: number };
   radius: number;
 
   sections: {
@@ -65,6 +66,17 @@ const SiteThemeSchema = new Schema<ISiteTheme>(
     colors: { type: Schema.Types.Mixed, default: {} },
     fonts: {
       type: new Schema({ body: String, display: String }, { _id: false }),
+      default: {},
+    },
+    gradient: {
+      type: new Schema(
+        {
+          from: { type: String, default: "#ff9f1c" },
+          to: { type: String, default: "#ffd166" },
+          angle: { type: Number, default: 110 },
+        },
+        { _id: false }
+      ),
       default: {},
     },
     radius: { type: Number, default: 14 },
@@ -118,14 +130,23 @@ const SiteThemeSchema = new Schema<ISiteTheme>(
 
 /**
  * Register the model. Dev hot reload can keep an older compiled model alive
- * on `mongoose.models`; if that cached model was built while `_id` still
- * defaulted to ObjectId (instead of our fixed "site" string), queries like
- * findById("site") would throw a CastError at runtime. Detect that case and
- * swap the stale model for the correct schema.
+ * on `mongoose.models`; if that cached model predates a schema change it
+ * silently misbehaves (e.g. strict mode stripping newly added fields on
+ * save). Validate everything a cached model must have, otherwise swap it
+ * for the freshly compiled schema.
  */
+function isUsableCachedModel(m: mongoose.Model<ISiteTheme>): boolean {
+  // Must use our fixed string singleton id ("site"), not ObjectId.
+  const idOk = m.schema.path("_id")?.instance === "String";
+  // Fields added after the first release — extend this list whenever the
+  // schema gains new top-level fields.
+  const gradientOk = Boolean(m.schema.path("gradient"));
+  return idOk && gradientOk;
+}
+
 let SiteTheme: mongoose.Model<ISiteTheme>;
 const existing = models.SiteTheme as mongoose.Model<ISiteTheme> | undefined;
-if (existing && existing.schema.path("_id")?.instance === "String") {
+if (existing && isUsableCachedModel(existing)) {
   SiteTheme = existing;
 } else {
   if (existing) {

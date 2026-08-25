@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import { useToast } from "@/components/ui/toast";
 import { uploadCatalogImage } from "@/lib/upload";
-import type { SectionHeader, SectionKey, SiteThemeConfig, ThemeColors } from "@/lib/theme";
+import { deriveThemeColorsFromGradient } from "@/lib/color";
+import type {
+  SectionHeader,
+  SectionKey,
+  SiteThemeConfig,
+  ThemeColors,
+  ThemeGradient,
+} from "@/lib/theme";
 
 /* Local copies (client-safe): never import values from lib/theme here,
    because that module pulls in Mongoose on the server. */
@@ -38,6 +45,32 @@ const COLOR_FIELDS: { key: keyof ThemeColors; label: string }[] = [
   { key: "accentStrong", label: "Accent strong" },
   { key: "cta", label: "CTA color" },
   { key: "ctaStrong", label: "CTA strong" },
+];
+
+interface GradientTemplate {
+  name: string;
+  from: string;
+  to: string;
+  angle: number;
+  dark?: boolean;
+}
+
+/** One-click brand gradients — the palette is auto-derived on click. */
+const GRADIENT_TEMPLATES: GradientTemplate[] = [
+  // Dark schemes
+  { name: "Neon Cyber", from: "#06b6d4", to: "#d946ef", angle: 120 },
+  { name: "Golden Luxury", from: "#b45309", to: "#fde68a", angle: 110 },
+  { name: "Coffee House", from: "#92400e", to: "#fbbf24", angle: 110 },
+  { name: "Deep Space", from: "#4f46e5", to: "#a78bfa", angle: 130 },
+  { name: "Teal Lagoon", from: "#0d9488", to: "#5eead4", angle: 110 },
+  { name: "Ember Night", from: "#dc2626", to: "#fb923c", angle: 110 },
+  // Light schemes
+  { name: "Arctic Frost", from: "#0284c7", to: "#7dd3fc", angle: 110, dark: false },
+  { name: "Rose Quartz", from: "#e11d48", to: "#fda4af", angle: 110, dark: false },
+  { name: "Mint Fresh", from: "#059669", to: "#6ee7b7", angle: 110, dark: false },
+  { name: "Lavender Mist", from: "#7c3aed", to: "#c4b5fd", angle: 110, dark: false },
+  { name: "Slate Pro", from: "#334155", to: "#94a3b8", angle: 110, dark: false },
+  { name: "Sunny Day", from: "#ea580c", to: "#fde047", angle: 115, dark: false },
 ];
 
 const FONT_OPTIONS = [
@@ -104,6 +137,7 @@ const EMPTY_FORM: SiteThemeConfig = {
   logoUrl: "",
   colors: { ...PRESETS[0].colors },
   fonts: { body: "DM Sans", display: "Space Grotesk" },
+  gradient: { from: "#ff9f1c", to: "#ffd166", angle: 110 },
   radius: 14,
   sections: {
     enabled: { hero: true, services: true, store: true, howItWorks: true, trackRepair: true, testimonials: true, contact: true },
@@ -171,6 +205,28 @@ export default function ThemeManager() {
 
   function setColor(key: keyof ThemeColors, value: string) {
     setForm((f) => ({ ...f, colors: { ...f.colors, [key]: value } }));
+  }
+
+  function setGradient(next: Partial<ThemeGradient>) {
+    setForm((f) => ({ ...f, gradient: { ...f.gradient, ...next } }));
+  }
+
+  /** One-click template: full palette + gradient derived together. */
+  function applyTemplate(t: GradientTemplate) {
+    const derived = deriveThemeColorsFromGradient(t.from, t.to, t.dark);
+    patch({
+      colors: { ...derived },
+      gradient: { from: t.from, to: t.to, angle: t.angle },
+    });
+  }
+
+  /** Keep current gradient, re-derive every other color to match it. */
+  function autoMatchGradient() {
+    const derived = deriveThemeColorsFromGradient(
+      form.gradient.from,
+      form.gradient.to
+    );
+    patch({ colors: { ...form.colors, ...derived } });
   }
 
   function setHeader(key: Exclude<SectionKey, "hero">, next: Partial<SectionHeader>) {
@@ -331,6 +387,71 @@ export default function ThemeManager() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="field field--full">
+                  <label>Brand gradient</label>
+                  <div
+                    className="gradient-bar"
+                    style={{
+                      background: `linear-gradient(${form.gradient.angle}deg, ${form.gradient.from}, ${form.gradient.to})`,
+                    }}
+                  />
+                  <div className="list-row__grid" style={{ marginTop: "0.6rem" }}>
+                    <div className="color-field">
+                      <input
+                        type="color"
+                        value={/^#[0-9a-fA-F]{6}$/.test(form.gradient.from) ? form.gradient.from : "#000000"}
+                        onChange={(e) => setGradient({ from: e.target.value })}
+                        aria-label="Gradient start"
+                      />
+                      <div className="color-field__meta">
+                        <span className="color-field__label">From</span>
+                        <input type="text" value={form.gradient.from} onChange={(e) => setGradient({ from: e.target.value })} spellCheck={false} />
+                      </div>
+                    </div>
+                    <div className="color-field">
+                      <input
+                        type="color"
+                        value={/^#[0-9a-fA-F]{6}$/.test(form.gradient.to) ? form.gradient.to : "#000000"}
+                        onChange={(e) => setGradient({ to: e.target.value })}
+                        aria-label="Gradient end"
+                      />
+                      <div className="color-field__meta">
+                        <span className="color-field__label">To</span>
+                        <input type="text" value={form.gradient.to} onChange={(e) => setGradient({ to: e.target.value })} spellCheck={false} />
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gap: "0.3rem", alignContent: "center", minWidth: 170 }}>
+                      <span className="color-field__label">Angle — {form.gradient.angle}°</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={360}
+                        value={form.gradient.angle}
+                        onChange={(e) => setGradient({ angle: Number(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                  <button type="button" className="btn btn--accent" style={{ marginTop: "0.7rem", padding: "0.5rem 1rem" }} onClick={autoMatchGradient}>
+                    ✨ Auto-match colors to gradient
+                  </button>
+                  <p className="form__note" style={{ marginTop: "0.35rem" }}>
+                    Re-derives background, cards, borders and text from your gradient's hue.
+                  </p>
+
+                  <label style={{ display: "block", marginTop: "1rem" }}>Quick gradient templates</label>
+                  <div className="preset-row" style={{ marginTop: "0.45rem" }}>
+                    {GRADIENT_TEMPLATES.map((t) => (
+                      <button key={t.name} type="button" className="preset-chip" onClick={() => applyTemplate(t)}>
+                        <span className="preset-swatch" style={{ background: `linear-gradient(${t.angle}deg, ${t.from}, ${t.to})` }} />
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="form__note" style={{ marginTop: "0.4rem" }}>
+                    Each template applies a full matching palette automatically — dark for dark gradients, light for light ones.
+                  </p>
                 </div>
                 <div className="color-grid">
                   {COLOR_FIELDS.map(({ key, label }) => {

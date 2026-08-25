@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db";
 import SiteTheme from "@/models/SiteTheme";
 import { clean } from "@/lib/utils";
+import { blendHex } from "@/lib/color";
 
 /* ============================================================
    Site theme — types, defaults, loader, sanitizer & CSS builder.
@@ -37,6 +38,15 @@ export interface ThemeColors {
   accentStrong: string;
   cta: string;
   ctaStrong: string;
+}
+
+export interface ThemeGradient {
+  /** Start color (hex). The deeper/saturated end works best. */
+  from: string;
+  /** End color (hex). */
+  to: string;
+  /** Direction in degrees (0 = up, 90 = →, 110 = the classic diagonal). */
+  angle: number;
 }
 
 export interface ThemeHeroStat {
@@ -78,6 +88,7 @@ export interface SiteThemeConfig {
   logoUrl: string;
   colors: ThemeColors;
   fonts: { body: string; display: string };
+  gradient: ThemeGradient;
   radius: number;
   sections: { enabled: Record<SectionKey, boolean>; order: SectionKey[] };
   hero: ThemeHero;
@@ -117,6 +128,7 @@ export const DEFAULT_THEME: SiteThemeConfig = {
     ctaStrong: "#ffb347",
   },
   fonts: { body: "DM Sans", display: "Space Grotesk" },
+  gradient: { from: "#ff9f1c", to: "#ffd166", angle: 110 },
   radius: 14,
   sections: {
     enabled: {
@@ -278,6 +290,13 @@ export function sanitizeTheme(input: unknown): SiteThemeConfig {
     display: fontName(rawFonts.display, d.fonts.display),
   };
 
+  const rawGradient = (raw.gradient ?? {}) as Record<string, unknown>;
+  const gradient = {
+    from: colorString(rawGradient.from, d.gradient.from),
+    to: colorString(rawGradient.to, d.gradient.to),
+    angle: clampInt(rawGradient.angle, 0, 360, d.gradient.angle),
+  };
+
   const rawSections = (raw.sections ?? {}) as Record<string, unknown>;
   const rawEnabled = (rawSections.enabled ?? {}) as Record<string, unknown>;
   const enabled = {} as Record<SectionKey, boolean>;
@@ -362,6 +381,7 @@ export function sanitizeTheme(input: unknown): SiteThemeConfig {
     logoUrl: str(raw.logoUrl, "", 600),
     colors,
     fonts,
+    gradient,
     radius: clampInt(raw.radius, 0, 32, d.radius),
     sections: { enabled, order: order as SectionKey[] },
     hero,
@@ -441,6 +461,17 @@ export function buildThemeCss(theme: SiteThemeConfig): string {
   const glowA = hexToRgba(c.accentStrong, 0.12);
   const glowB = hexToRgba(c.accent, 0.05);
 
+  const gFrom = /^#[0-9a-fA-F]{6}$/.test(theme.gradient.from);
+  const gTo = /^#[0-9a-fA-F]{6}$/.test(theme.gradient.to);
+  const gradientCss =
+    gFrom && gTo
+      ? `linear-gradient(${theme.gradient.angle}deg, ${theme.gradient.from} 0%, ${blendHex(
+          theme.gradient.from,
+          theme.gradient.to,
+          0.5
+        )} 52%, ${theme.gradient.to} 100%)`
+      : `linear-gradient(${theme.gradient.angle}deg, ${theme.gradient.from}, ${theme.gradient.to})`;
+
   return `
 @import url("${googleHref}");
 :root{
@@ -457,7 +488,11 @@ export function buildThemeCss(theme: SiteThemeConfig): string {
   --cta-strong:${c.ctaStrong};
 ${glowA ? `  --glow-a:${glowA};\n` : ""}${glowB ? `  --glow-b:${glowB};\n` : ""}${
     headerTint ? `  --header-bg:${headerTint};\n` : ""
-  }  --radius:${theme.radius}px;
+  }  --grad-from:${theme.gradient.from};
+  --grad-to:${theme.gradient.to};
+  --grad-angle:${theme.gradient.angle};
+  --gradient:${gradientCss};
+  --radius:${theme.radius}px;
   --font:${bodyFont};
   --display:${displayFont};
 }
