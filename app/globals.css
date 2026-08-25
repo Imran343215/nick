@@ -91,6 +91,9 @@ img {
 
 .btn--primary {
   background: var(--gradient);
+  /* Keep the gradient out of the 1px transparent border ring — prevents
+     faint seams/notches at the pill's left/right tips. */
+  background-clip: padding-box;
   color: #2b1603;
   box-shadow: 0 12px 28px color-mix(in srgb, var(--accent-strong) 30%, transparent);
 }
@@ -112,6 +115,7 @@ img {
 
 .btn--accent {
   background: var(--gradient);
+  background-clip: padding-box;
   color: #2b1603;
   box-shadow: 0 10px 24px color-mix(in srgb, var(--accent-strong) 28%, transparent);
 }
@@ -3221,6 +3225,7 @@ img {
 
 .theme-tab--active {
   background: var(--gradient);
+  background-clip: padding-box;
   color: #2b1603;
   border-color: transparent;
 }
