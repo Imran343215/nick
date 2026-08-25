@@ -11,6 +11,7 @@ import { fetchServices } from "@/lib/services";
 import { fetchProducts } from "@/lib/products";
 import { fetchTheme, type SectionKey } from "@/lib/theme";
 import { Fragment, type ReactNode } from "react";
+import PreviewBridge from "@/components/PreviewBridge";
 
 // Render fresh services + theme on every request (no static caching).
 export const dynamic = "force-dynamic";
@@ -42,6 +43,8 @@ export default async function Home() {
 
   return (
     <>
+      {/* Live-preview receiver for the admin Theme Customizer iframe. */}
+      <PreviewBridge />
       <Header
         brand={{
           name: theme.brandName,

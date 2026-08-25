@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import { useToast } from "@/components/ui/toast";
 import { uploadCatalogImage } from "@/lib/upload";
-import { deriveThemeColorsFromGradient } from "@/lib/color";
+import { blendHex, deriveThemeColorsFromGradient, hexToRgb } from "@/lib/color";
 import type {
   SectionHeader,
   SectionKey,
@@ -46,6 +46,57 @@ const COLOR_FIELDS: { key: keyof ThemeColors; label: string }[] = [
   { key: "cta", label: "CTA color" },
   { key: "ctaStrong", label: "CTA strong" },
 ];
+
+function rgbaFromHex(hex: string, alpha: number): string | null {
+  const rgb = hexToRgb(hex);
+  return rgb ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})` : null;
+}
+
+/**
+ * Mirrors buildThemeCss() from lib/theme.ts but runs client-side on the
+ * UNSAVED form state, so the preview iframe can be tinted instantly.
+ */
+function buildPreviewVars(t: SiteThemeConfig): Record<string, string> {
+  const c = t.colors;
+  const vars: Record<string, string> = {
+    "--bg": c.bg,
+    "--bg-soft": c.bgSoft,
+    "--card": c.card,
+    "--card-hover": c.cardHover,
+    "--border": c.border,
+    "--text": c.text,
+    "--muted": c.muted,
+    "--accent": c.accent,
+    "--accent-strong": c.accentStrong,
+    "--cta": c.cta,
+    "--cta-strong": c.ctaStrong,
+    "--radius": `${t.radius}px`,
+    "--font": `"${t.fonts.body}", "Segoe UI", system-ui, sans-serif`,
+    "--display": `"${t.fonts.display}", "${t.fonts.body}", sans-serif`,
+    "--grad-from": t.gradient.from,
+    "--grad-to": t.gradient.to,
+    "--grad-angle": String(t.gradient.angle),
+  };
+
+  const glowA = rgbaFromHex(c.accentStrong, 0.12);
+  if (glowA) vars["--glow-a"] = glowA;
+  const glowB = rgbaFromHex(c.accent, 0.05);
+  if (glowB) vars["--glow-b"] = glowB;
+  const headerBg = rgbaFromHex(c.bg, 0.82);
+  if (headerBg) vars["--header-bg"] = headerBg;
+
+  const isHex = (value: string) => /^#[0-9a-fA-F]{6}$/.test(value);
+  vars["--gradient"] =
+    isHex(t.gradient.from) && isHex(t.gradient.to)
+      ? `linear-gradient(${t.gradient.angle}deg, ${t.gradient.from} 0%, ${blendHex(
+          t.gradient.from,
+          t.gradient.to,
+          0.5
+        )} 52%, ${t.gradient.to} 100%)`
+      : `linear-gradient(${t.gradient.angle}deg, ${t.gradient.from}, ${t.gradient.to})`;
+
+  return vars;
+}
 
 interface GradientTemplate {
   name: string;
@@ -88,30 +139,36 @@ const FONT_OPTIONS = [
   "Merriweather",
 ];
 
-const PRESETS: { name: string; colors: ThemeColors }[] = [
+const PRESETS: { name: string; colors: ThemeColors; gradient: ThemeGradient }[] = [
   {
     name: "Midnight Amber",
     colors: { bg: "#060a13", bgSoft: "#0b1020", card: "#0f1527", cardHover: "#131a30", border: "rgba(148,163,184,0.14)", text: "#e6edf7", muted: "#94a3b8", accent: "#ffd166", accentStrong: "#ff9f1c", cta: "#ff786b", ctaStrong: "#ffb347" },
+    gradient: { from: "#ff9f1c", to: "#ffd166", angle: 110 },
   },
   {
     name: "Ocean Blue",
     colors: { bg: "#06121f", bgSoft: "#0a1a2b", card: "#0e2136", cardHover: "#132a44", border: "rgba(125,170,220,0.15)", text: "#e3eef9", muted: "#8fa9c2", accent: "#67d4ff", accentStrong: "#1e90ff", cta: "#2fa3e8", ctaStrong: "#66c7ff" },
+    gradient: { from: "#1e90ff", to: "#67d4ff", angle: 110 },
   },
   {
     name: "Royal Purple",
     colors: { bg: "#0d0a1c", bgSoft: "#141031", card: "#1a1440", cardHover: "#211a52", border: "rgba(180,150,255,0.16)", text: "#ece7fb", muted: "#a79ccd", accent: "#d7b3ff", accentStrong: "#8b5cf6", cta: "#a78bfa", ctaStrong: "#c4a5ff" },
+    gradient: { from: "#8b5cf6", to: "#d7b3ff", angle: 110 },
   },
   {
     name: "Forest Green",
     colors: { bg: "#081410", bgSoft: "#0c1d17", card: "#10261e", cardHover: "#153227", border: "rgba(130,200,160,0.15)", text: "#e4f3ea", muted: "#93b8a4", accent: "#8ff0b4", accentStrong: "#22c55e", cta: "#34d399", ctaStrong: "#86efac" },
+    gradient: { from: "#22c55e", to: "#8ff0b4", angle: 110 },
   },
   {
     name: "Crimson Night",
     colors: { bg: "#140a0e", bgSoft: "#1e1016", card: "#26141c", cardHover: "#301a24", border: "rgba(230,150,170,0.15)", text: "#fbe9ee", muted: "#c39aa7", accent: "#ffb3c1", accentStrong: "#f43f5e", cta: "#fb7185", ctaStrong: "#ffa2b0" },
+    gradient: { from: "#f43f5e", to: "#ffb3c1", angle: 110 },
   },
   {
     name: "Clean Light",
     colors: { bg: "#f5f6fb", bgSoft: "#eef0f8", card: "#ffffff", cardHover: "#f3f4fb", border: "rgba(30,41,59,0.12)", text: "#16213a", muted: "#5b6880", accent: "#f59e0b", accentStrong: "#d97706", cta: "#ea7a4b", ctaStrong: "#f5a05a" },
+    gradient: { from: "#d97706", to: "#f59e0b", angle: 110 },
   },
 ];
 
@@ -172,12 +229,28 @@ export default function ThemeManager() {
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingHero, setUploadingHero] = useState(false);
-  const [previewKey, setPreviewKey] = useState(0);
+  const previewRef = useRef<HTMLIFrameElement | null>(null);
+  // Increments when the preview iframe (re)loads or admin hits ⟳ — each
+  // increment re-pushes the current unsaved theme into the iframe.
+  const [previewNonce, setPreviewNonce] = useState(0);
 
   const dirty = useMemo(
     () => JSON.stringify(form) !== savedJson,
     [form, savedJson]
   );
+
+  // Live preview: stream the UNSAVED theme into the iframe on every change.
+  useEffect(() => {
+    if (!previewNonce || !previewRef.current?.contentWindow) return;
+    previewRef.current.contentWindow.postMessage(
+      {
+        type: "theme-preview",
+        cssVars: buildPreviewVars(form),
+        fonts: { body: form.fonts.body, display: form.fonts.display },
+      },
+      window.location.origin
+    );
+  }, [form, previewNonce]);
 
   useEffect(() => {
     fetch("/api/admin/theme")
@@ -268,7 +341,6 @@ export default function ThemeManager() {
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Could not save the theme.");
       setSavedJson(JSON.stringify(data.theme));
-      setPreviewKey((k) => k + 1);
       toast.success("Theme saved — live on the site now.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save the theme.");
@@ -286,7 +358,6 @@ export default function ThemeManager() {
       if (!res.ok || !data.ok) throw new Error(data.error || "Could not reset the theme.");
       setForm(data.theme);
       setSavedJson(JSON.stringify(data.theme));
-      setPreviewKey((k) => k + 1);
       toast.success("Theme restored to defaults.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not reset the theme.");
@@ -381,7 +452,7 @@ export default function ThemeManager() {
                   <label>Quick palettes</label>
                   <div className="preset-row">
                     {PRESETS.map((preset) => (
-                      <button key={preset.name} type="button" className="preset-chip" onClick={() => patch({ colors: { ...preset.colors } })}>
+                      <button key={preset.name} type="button" className="preset-chip" onClick={() => patch({ colors: { ...preset.colors }, gradient: { ...preset.gradient } })}>
                         <span className="preset-swatch" style={{ background: `linear-gradient(135deg, ${preset.colors.accentStrong}, ${preset.colors.bg})` }} />
                         {preset.name}
                       </button>
@@ -746,17 +817,18 @@ export default function ThemeManager() {
             <div className="theme-preview">
               <div className="theme-preview__bar">
                 <span>Live landing page preview</span>
-                <button type="button" className="icon-btn" onClick={() => setPreviewKey((k) => k + 1)} aria-label="Reload preview">⟳</button>
+                <button type="button" className="icon-btn" onClick={() => setPreviewNonce((n) => n + 1)} aria-label="Reload preview">⟳</button>
               </div>
               <iframe
-                key={previewKey}
+                ref={previewRef}
                 src="/"
                 title="Landing page preview"
                 loading="lazy"
+                onLoad={() => setPreviewNonce((n) => n + 1)}
               />
             </div>
             <p className="form__note" style={{ marginTop: "0.5rem" }}>
-              The preview shows the saved theme — hit “Save changes” then ⟳ to see your edits.
+              Edits appear here instantly — even before saving. Press ⟳ to see the last-saved version.
             </p>
           </div>
         </div>
