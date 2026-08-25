@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import { useToast } from "@/components/ui/toast";
 import { uploadCatalogImage } from "@/lib/upload";
-import { blendHex, deriveThemeColorsFromGradient, hexToRgb } from "@/lib/color";
+import { deriveThemeColorsFromGradient } from "@/lib/color";
+import { buildThemeOverrideVars as buildPreviewVars } from "@/lib/preview-vars";
 import type {
   SectionHeader,
   SectionKey,
@@ -46,57 +47,6 @@ const COLOR_FIELDS: { key: keyof ThemeColors; label: string }[] = [
   { key: "cta", label: "CTA color" },
   { key: "ctaStrong", label: "CTA strong" },
 ];
-
-function rgbaFromHex(hex: string, alpha: number): string | null {
-  const rgb = hexToRgb(hex);
-  return rgb ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})` : null;
-}
-
-/**
- * Mirrors buildThemeCss() from lib/theme.ts but runs client-side on the
- * UNSAVED form state, so the preview iframe can be tinted instantly.
- */
-function buildPreviewVars(t: SiteThemeConfig): Record<string, string> {
-  const c = t.colors;
-  const vars: Record<string, string> = {
-    "--bg": c.bg,
-    "--bg-soft": c.bgSoft,
-    "--card": c.card,
-    "--card-hover": c.cardHover,
-    "--border": c.border,
-    "--text": c.text,
-    "--muted": c.muted,
-    "--accent": c.accent,
-    "--accent-strong": c.accentStrong,
-    "--cta": c.cta,
-    "--cta-strong": c.ctaStrong,
-    "--radius": `${t.radius}px`,
-    "--font": `"${t.fonts.body}", "Segoe UI", system-ui, sans-serif`,
-    "--display": `"${t.fonts.display}", "${t.fonts.body}", sans-serif`,
-    "--grad-from": t.gradient.from,
-    "--grad-to": t.gradient.to,
-    "--grad-angle": String(t.gradient.angle),
-  };
-
-  const glowA = rgbaFromHex(c.accentStrong, 0.12);
-  if (glowA) vars["--glow-a"] = glowA;
-  const glowB = rgbaFromHex(c.accent, 0.05);
-  if (glowB) vars["--glow-b"] = glowB;
-  const headerBg = rgbaFromHex(c.bg, 0.82);
-  if (headerBg) vars["--header-bg"] = headerBg;
-
-  const isHex = (value: string) => /^#[0-9a-fA-F]{6}$/.test(value);
-  vars["--gradient"] =
-    isHex(t.gradient.from) && isHex(t.gradient.to)
-      ? `linear-gradient(${t.gradient.angle}deg, ${t.gradient.from} 0%, ${blendHex(
-          t.gradient.from,
-          t.gradient.to,
-          0.5
-        )} 52%, ${t.gradient.to} 100%)`
-      : `linear-gradient(${t.gradient.angle}deg, ${t.gradient.from}, ${t.gradient.to})`;
-
-  return vars;
-}
 
 interface GradientTemplate {
   name: string;
