@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import { formatPrice, firstError, nonNegativeNumber, requiredField } from "@/lib/utils";
@@ -45,7 +44,6 @@ export default function ProductManager() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [categoryName, setCategoryName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -134,45 +132,6 @@ export default function ProductManager() {
     setShowForm(true);
   }
 
-  async function createCategory(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-    const name = categoryName.trim();
-    if (!name) {
-      toast.error("Category name is required.");
-      return;
-    }
-    const res = await fetch("/api/admin/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "Could not create category.");
-      toast.error(data.error || "Could not create category.");
-      return;
-    }
-
-    setCategories((current) => [...current, data.category]);
-    setForm((current) => ({ ...current, category: data.category.name }));
-    setCategoryName("");
-    toast.success("Category created.");
-  }
-
-  async function removeCategory(id: string) {
-    if (!window.confirm("Delete this category? Products keep their current label.")) return;
-    const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Could not delete category.");
-      toast.error(data.error || "Could not delete category.");
-      return;
-    }
-    setCategories((current) => current.filter((c) => c._id !== id));
-    toast.success("Category deleted.");
-  }
-
   async function saveProduct(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -253,11 +212,7 @@ export default function ProductManager() {
   }
 
   return (
-    <AdminShell
-      eyebrow="Store management"
-      title="Store products"
-      lead="List new and second-hand devices with secure Stripe checkout."
-    >
+    <>
       <div className="admin-toolbar admin-toolbar--compact">
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Add product
@@ -356,37 +311,6 @@ export default function ProductManager() {
           </>
         )}
       />
-
-      <div className="admin-panel">
-        <div className="form-card">
-          <h2 className="admin-card-title">Categories</h2>
-          <p className="form__note">Create the categories shown in the product form dropdown.</p>
-          <form className="admin-inline-form" onSubmit={createCategory}>
-            <input
-              aria-label="New category name"
-              placeholder="e.g. iPhone, Samsung, Accessories"
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-            />
-            <button type="submit" className="btn btn--primary">
-              Add category
-            </button>
-          </form>
-          <ul className="admin-category-list">
-            {categories.map((cat) => (
-              <li key={cat._id}>
-                <span>{cat.name}</span>
-                <button className="btn btn--ghost" onClick={() => removeCategory(cat._id)}>
-                  Delete
-                </button>
-              </li>
-            ))}
-            {categories.length === 0 && (
-              <li className="form__note">No categories yet — add your first one.</li>
-            )}
-          </ul>
-        </div>
-      </div>
 
       <Modal
         open={showForm}
@@ -499,6 +423,6 @@ export default function ProductManager() {
           </div>
         </form>
       </Modal>
-    </AdminShell>
+    </>
   );
 }

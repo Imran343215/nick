@@ -1,10 +1,15 @@
 import { isAdminAuthed } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import ProductManager from "./ProductManager";
+import ProductsAdmin from "./ProductsAdmin";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage() {
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   if (!(await isAdminAuthed())) redirect("/admin");
-  return <ProductManager />;
+  const { tab } = await searchParams;
+  return <ProductsAdmin initialTab={tab} />;
 }

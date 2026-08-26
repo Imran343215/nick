@@ -3235,7 +3235,8 @@ img {
   border-color: transparent;
 }
 
-.repair-admin {
+.repair-admin,
+.products-admin {
   display: grid;
   gap: 1.25rem;
 }
