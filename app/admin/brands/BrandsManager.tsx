@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { BrandShape, CategoryShape } from "@/lib/repair-catalog";
@@ -155,11 +154,7 @@ export default function BrandsManager() {
   }
 
   return (
-    <AdminShell
-      eyebrow="Repair catalog"
-      title="Brands"
-      lead="Manage phone brands shown on the public repair catalog."
-    >
+    <>
       <div className="admin-toolbar admin-toolbar--compact">
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Add brand
@@ -313,6 +308,6 @@ export default function BrandsManager() {
             </>
           )}
         />
-    </AdminShell>
+    </>
   );
 }

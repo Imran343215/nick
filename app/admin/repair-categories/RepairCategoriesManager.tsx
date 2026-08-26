@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { CategoryShape } from "@/lib/repair-catalog";
@@ -145,11 +144,7 @@ export default function RepairCategoriesManager() {
   }
 
   return (
-    <AdminShell
-      eyebrow="Repair catalog"
-      title="Categories"
-      lead="Create repair categories (e.g. Mobile repair, Laptop repair). Brands are then assigned to a category, so customers pick a category first on the repair page."
-    >
+    <>
       <div className="admin-toolbar admin-toolbar--compact">
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Add category
@@ -283,6 +278,6 @@ export default function RepairCategoriesManager() {
           </>
         )}
       />
-    </AdminShell>
+    </>
   );
 }

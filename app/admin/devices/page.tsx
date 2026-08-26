@@ -1,10 +1,10 @@
 import { isAdminAuthed } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import DevicesManager from "./DevicesManager";
 
 export const dynamic = "force-dynamic";
 
+/** Legacy URL — devices now live on the tabbed Repair services page. */
 export default async function AdminDevicesPage() {
   if (!(await isAdminAuthed())) redirect("/admin");
-  return <DevicesManager />;
+  redirect("/admin/repair-services?tab=devices");
 }

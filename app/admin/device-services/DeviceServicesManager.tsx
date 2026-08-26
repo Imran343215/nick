@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type {
@@ -239,11 +238,7 @@ export default function DeviceServicesManager() {
   }
 
   return (
-    <AdminShell
-      eyebrow="Repair catalog"
-      title="Device services"
-      lead="Assign service templates to devices with custom pricing."
-    >
+    <>
       <div className="admin-toolbar admin-toolbar--compact">
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Assign service
@@ -519,6 +514,6 @@ export default function DeviceServicesManager() {
           </div>
         </form>
       </Modal>
-    </AdminShell>
+    </>
   );
 }

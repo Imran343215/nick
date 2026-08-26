@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { ServiceTemplateShape } from "@/lib/repair-catalog";
@@ -145,11 +144,7 @@ export default function RepairServicesManager() {
   }
 
   return (
-    <AdminShell
-      eyebrow="Repair catalog"
-      title="Service templates"
-      lead="Create reusable repair services (e.g. Screen Replacement) that can then be assigned to devices on the Device services page."
-    >
+    <>
       <div className="admin-toolbar admin-toolbar--compact">
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Create template
@@ -289,6 +284,6 @@ export default function RepairServicesManager() {
           </div>
         </form>
       </Modal>
-    </AdminShell>
+    </>
   );
 }

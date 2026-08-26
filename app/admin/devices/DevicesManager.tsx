@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { BrandShape, DeviceShape } from "@/lib/repair-catalog";
@@ -162,11 +161,7 @@ export default function DevicesManager() {
   }
 
   return (
-    <AdminShell
-      eyebrow="Repair catalog"
-      title="Devices"
-      lead="Add device models under each brand for the repair catalog."
-    >
+    <>
       <div className="admin-toolbar admin-toolbar--compact">
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Add device
@@ -332,6 +327,6 @@ export default function DevicesManager() {
             </>
           )}
         />
-    </AdminShell>
+    </>
   );
 }
