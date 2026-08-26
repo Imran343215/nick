@@ -3241,6 +3241,60 @@ img {
   gap: 1.25rem;
 }
 
+/* ============================================================
+   LANDING — #services shop-by-category block
+   ============================================================ */
+
+.services-shopby {
+  margin-top: 2.25rem;
+  padding-top: 1.75rem;
+  border-top: 1px dashed var(--border);
+}
+
+.services-shopby__title {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  color: var(--text);
+}
+
+.shopby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.shopby-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.15rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.shopby-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-strong);
+}
+
+.shopby-card__name {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.shopby-card__cta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+
+.shopby-card:hover .shopby-card__cta {
+  color: var(--accent);
+}
+
 .color-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));

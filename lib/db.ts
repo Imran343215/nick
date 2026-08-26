@@ -66,8 +66,14 @@ export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    await ensureSrvResolvable();
-    cached.promise = mongoose.connect(MONGODB_URI, CONNECTION_OPTIONS);
+    // Assign synchronously so parallel callers share ONE connection attempt.
+    // (Doing `await ensureSrvResolvable()` before assigning opened a window
+    // where several callers each started their own connect, and queries ran
+    // before any of them finished.)
+    cached.promise = (async () => {
+      await ensureSrvResolvable();
+      return mongoose.connect(MONGODB_URI, CONNECTION_OPTIONS);
+    })();
   }
 
   try {

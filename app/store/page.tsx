@@ -6,11 +6,24 @@ import { fetchCategories } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
-export default async function StorePage() {
+export default async function StorePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
   const [products, categories] = await Promise.all([
     fetchProducts(),
     fetchCategories(),
   ]);
+
+  // Deep links like /store?category=mobile pre-select that category chip.
+  const params = await searchParams;
+  const requested = (params.category ?? "").trim().toLowerCase();
+  const matchedCategory = requested
+    ? categories.find(
+        (c) => c.slug.toLowerCase() === requested || c.name.toLowerCase() === requested
+      )
+    : undefined;
 
   // Count active products per category so the filter chips show real numbers.
   const counts = new Map<string, number>();
@@ -39,7 +52,11 @@ export default async function StorePage() {
               </p>
             </div>
             {products.length ? (
-              <StoreBrowser products={products} categories={storeCategories} />
+              <StoreBrowser
+                products={products}
+                categories={storeCategories}
+                initialCategory={matchedCategory?.name}
+              />
             ) : (
               <div className="empty-note">
                 No products are available right now.

@@ -17,11 +17,14 @@ type SortKey = "featured" | "newest" | "price-asc" | "price-desc";
 export default function StoreBrowser({
   products,
   categories,
+  initialCategory,
 }: {
   products: ProductShape[];
   categories: StoreCategory[];
+  /** Pre-selects a category chip when arriving from a deep link (e.g. /store?category=mobile). */
+  initialCategory?: string;
 }) {
-  const [active, setActive] = useState("all");
+  const [active, setActive] = useState(() => initialCategory ?? "all");
   const [query, setQuery] = useState("");
   const [condition, setCondition] = useState<Condition>("all");
   const [sort, setSort] = useState<SortKey>("featured");
