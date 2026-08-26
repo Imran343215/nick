@@ -24,6 +24,8 @@ function toJSON(o: Record<string, any>) {
     paymentStatus: o.paymentStatus,
     fulfillmentStatus: o.fulfillmentStatus,
     createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : null,
+    invoiceNumber: o.invoiceNumber ?? null,
+    invoicedAt: o.invoicedAt ? new Date(o.invoicedAt).toISOString() : null,
   };
 }
 

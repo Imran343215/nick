@@ -19,6 +19,9 @@ export interface IOrder {
   paymentStatus: "pending" | "paid" | "failed";
   fulfillmentStatus: "pending" | "processing" | "shipped" | "completed" | "cancelled";
   notifiedAt?: Date;
+  /** Issued automatically when the order is delivered (fulfilment completed). */
+  invoiceNumber?: string;
+  invoicedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -47,6 +50,8 @@ const OrderSchema = new Schema<IOrder>(
       default: "pending",
     },
     notifiedAt: { type: Date },
+    invoiceNumber: { type: String, unique: true, sparse: true, index: true },
+    invoicedAt: { type: Date },
   },
   { timestamps: true }
 );

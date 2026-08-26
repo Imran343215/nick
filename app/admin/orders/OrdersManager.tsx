@@ -20,6 +20,7 @@ type Order = {
   shippingCarrier: string;
   shippingNumber: string;
   createdAt: string | null;
+  invoiceNumber?: string | null;
 };
 
 const STATUSES = ["pending", "processing", "shipped", "completed", "cancelled"];
@@ -110,6 +111,7 @@ export default function OrdersManager() {
               <span>Customer</span>
               <span>Item</span>
               <span>Payment</span>
+              <span>Invoice</span>
               <span>Status</span>
               <span>Shipping</span>
             </div>
@@ -140,6 +142,18 @@ export default function OrdersManager() {
                 </span>
                 <span>
                   <small>{o.paymentStatus}</small>
+                </span>
+                <span>
+                  {o.invoiceNumber || o.fulfillmentStatus === "completed" ? (
+                    <a
+                      className="btn btn--ghost"
+                      href={`/api/invoices/${encodeURIComponent(o.orderNumber)}`}
+                    >
+                      ⬇ Invoice
+                    </a>
+                  ) : (
+                    <small className="form__note">On delivery</small>
+                  )}
                 </span>
                 <span>
                   <select

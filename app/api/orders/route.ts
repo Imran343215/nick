@@ -21,6 +21,8 @@ function serialize(order: Record<string, any>) {
     paymentStatus: order.paymentStatus,
     fulfillmentStatus: order.fulfillmentStatus,
     createdAt: order.createdAt,
+    invoiceNumber: order.invoiceNumber ?? null,
+    invoicedAt: order.invoicedAt ?? null,
   };
 }
 

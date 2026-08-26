@@ -17,6 +17,7 @@ type Order = {
   paymentStatus: string;
   fulfillmentStatus: string;
   createdAt: string;
+  invoiceNumber?: string | null;
 };
 
 export default function OrderLookup() {
@@ -274,7 +275,7 @@ function OrderCard({
         </div>
       ) : null}
 
-      {canCancel && (
+      {canCancel ? (
         <div className="order-card__actions">
           <button
             type="button"
@@ -285,7 +286,17 @@ function OrderCard({
             {cancelling ? "Cancelling..." : "Cancel order and refund"}
           </button>
         </div>
-      )}
+      ) : order.fulfillmentStatus === "completed" ? (
+        <div className="order-card__actions">
+          <a
+            className="btn btn--primary"
+            href={`/api/invoices/${encodeURIComponent(order.orderNumber)}`}
+            download
+          >
+            ⬇ Download invoice{order.invoiceNumber ? ` · ${order.invoiceNumber}` : ""}
+          </a>
+        </div>
+      ) : null}
     </article>
   );
 }

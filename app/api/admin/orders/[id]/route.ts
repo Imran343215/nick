@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { isAdminAuthed } from "@/lib/auth";
 import Order from "@/models/Order";
 import { clean } from "@/lib/utils";
+import { ensureInvoiceIssued } from "@/lib/invoice";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,14 @@ export async function PATCH(request: Request, { params }: Params) {
     if (typeof body.shippingNumber === "string")
       update.shippingNumber = clean(body.shippingNumber);
 
-    const updated = await Order.findByIdAndUpdate(id, update, { new: true }).lean().exec();
+    let updated = await Order.findByIdAndUpdate(id, update, { new: true }).lean().exec();
+
+    // Real e-commerce behaviour: the invoice is issued the moment an order is
+    // marked delivered (fulfilment "completed"). Existing invoices are kept.
+    if (updated && update.fulfillmentStatus === "completed" && !updated.invoiceNumber) {
+      updated = await ensureInvoiceIssued(updated);
+    }
+
     return NextResponse.json({ ok: true, order: updated });
   } catch (err) {
     console.error("[api PATCH /api/admin/orders/:id]", err);

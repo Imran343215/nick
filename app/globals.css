@@ -1782,7 +1782,7 @@ img {
 }
 
 .admin-row--orders {
-  grid-template-columns: 130px minmax(180px, 1fr) minmax(160px, 1fr) 90px 130px minmax(200px, 1.2fr);
+  grid-template-columns: 120px minmax(160px, 1fr) minmax(150px, 1fr) 78px 104px 122px minmax(180px, 1.2fr);
   align-items: center;
 }
 
