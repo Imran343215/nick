@@ -6,11 +6,11 @@ import { ReactNode } from "react";
 
 const NAV = [
   { href: "/admin", label: "Repair bookings", exact: true },
-  { href: "/admin/theme", label: "Theme customizer" },
+  { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/products", label: "Store products" },
   { href: "/admin/repair-services", label: "Repair services" },
   { href: "/admin/coupons", label: "Coupons" },
-  { href: "/admin/products", label: "Store products" },
-  { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/theme", label: "Theme customizer" },
 ];
 
 export default function AdminShell({
