@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { buildThemeCss, fetchTheme } from "@/lib/theme";
 import { themeFingerprint } from "@/lib/preview-vars";
 import ThemeSync from "@/components/ThemeSync";
+import WhatsAppWidget from "@/components/WhatsAppWidget";
 // This file is used to define the root layout of the application, including metadata and viewport settings. It imports global CSS styles and sets up the HTML structure for the app. The metadata includes the title and description for SEO purposes, while the viewport settings ensure proper scaling on different devices. The RootLayout component wraps the children components in an HTML structure with a specified language attribute.  
 import "./globals.css";
 
@@ -41,6 +42,7 @@ export default async function RootLayout({
         <ClerkProvider>
           <ToastProvider>
             {children}
+            <WhatsAppWidget />
           </ToastProvider>
         </ClerkProvider>
       </body>

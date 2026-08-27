@@ -1,0 +1,20 @@
+{
+  "name": "baileys-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Always-on WhatsApp bridge for the PhoneFix Pro site chat widget. Runs on a VM, not Vercel.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "@hapi/boom": "^10.0.1",
+    "mongoose": "^8.9.4",
+    "express": "^4.21.1",
+    "pino": "^9.5.0",
+    "qrcode-terminal": "^0.12.0",
+    "dotenv": "^16.4.5"
+  }
+}

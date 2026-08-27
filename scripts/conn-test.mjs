@@ -1,4 +1,4 @@
-// Full MongoDB Atlas connectivity + CRUD test with a working DNS server.
+// Full MongoDB Atlas connectivity + CRUD test.
 import fs from "fs";
 import dns from "dns";
 import mongoose from "mongoose";
@@ -6,9 +6,10 @@ import mongoose from "mongoose";
 // Point Node's resolver at public DNS servers (the OS one refuses SRV here).
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
+// Never hardcode credentials here — this file ships in git.
 const uri =
   process.env.MONGODB_URI ||
-  "mongodb+srv://i4imran322_db_user:wyXS3KP0Ib0ZzAFZ@cluster0.hhtss10.mongodb.net/";
+  "mongodb://127.0.0.1:27017/mobile_repair_shop";
 
 async function main() {
   const lines = [];
