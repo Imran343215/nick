@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import RepairBooking from "@/models/RepairBooking";
+import { jsonWithCors, handleOptions } from "@/lib/cors";
 
 export const dynamic = "force-dynamic";
 
@@ -50,8 +51,8 @@ export async function POST(request: Request) {
     const code =
       typeof body.trackingId === "string" ? body.trackingId.trim().toUpperCase() : "";
 
-    if (!code) {
-      return NextResponse.json(
+        if (!code) {
+      return jsonWithCors(
         { ok: false, error: "A tracking ID is required." },
         { status: 400 }
       );
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
       .exec();
 
     if (!booking) {
-      return NextResponse.json(
+            return jsonWithCors(
         {
           ok: false,
           error: "No repair booking found with that tracking ID.",
@@ -74,10 +75,9 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true, order: serializeBooking(booking) });
-  } catch (err) {
+        return jsonWithCors({ ok: true, order: serializeBooking(booking) });
     console.error("[api POST /api/repair-status]", err);
-    return NextResponse.json(
+        return jsonWithCors(
       { ok: false, error: "Could not fetch repair status." },
       { status: 500 }
     );

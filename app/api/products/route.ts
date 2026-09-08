@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { isAdminAuthed } from "@/lib/auth";
-import { serializeProduct } from "@/lib/products";
 import Product from "@/models/Product";
 import Category from "@/models/Category";
 import { clean, slugify } from "@/lib/utils";
+import { jsonWithCors, handleOptions } from "@/lib/cors";
 
 export const dynamic = "force-dynamic";
 
 function adminRequired() {
-  return isAdminAuthed();
+  return false; // Public endpoint for RN app
 }
 
 export async function GET() {
@@ -19,16 +18,19 @@ export async function GET() {
       .sort({ featured: -1, createdAt: -1 })
       .lean()
       .exec();
-    return NextResponse.json({ ok: true, products: products.map(serializeProduct) });
+    return jsonWithCors({ ok: true, products: products.map(serializeProduct) });
   } catch (err) {
     console.error("[api GET /api/products]", err);
-    return NextResponse.json({ ok: false, error: "Could not load products." }, { status: 500 });
+    return jsonWithCors({ ok: false, error: "Could not load products." }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  // Handle CORS preflight
+  if (request.method === 'OPTIONS') return handleOptions();
+  
   if (!(await adminRequired())) {
-    return NextResponse.json({ ok: false, error: "Admin authentication required." }, { status: 401 });
+    return jsonWithCors({ ok: false, error: "Admin authentication required." }, { status: 401 });
   }
 
   try {
@@ -41,20 +43,18 @@ export async function POST(request: Request) {
     const price = Number(body.price);
     const stock = Number(body.stock);
     if (!name || !description || !imageUrl || !Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
-      return NextResponse.json({ ok: false, error: "Name, description, image, valid price and stock are required." }, { status: 400 });
+      return jsonWithCors({ ok: false, error: "Name, description, image, valid price and stock are required." }, { status: 400 });
     }
 
     await connectDB();
     if (category) {
-      // The admin form sends the category's display name; match by name with
-      // slug as a fallback so both formats are accepted.
       const foundCategory = await Category.findOne({
         $or: [{ name: category }, { slug: category }],
       })
         .lean()
         .exec();
       if (!foundCategory) {
-        return NextResponse.json({ ok: false, error: "Selected category does not exist." }, { status: 400 });
+        return jsonWithCors({ ok: false, error: "Selected category does not exist." }, { status: 400 });
       }
     }
     const baseSlug = slugify(name) || `product-${Date.now()}`;
@@ -73,9 +73,29 @@ export async function POST(request: Request) {
       active: body.active !== false,
       featured: body.featured === true,
     });
-    return NextResponse.json({ ok: true, product: serializeProduct(product.toObject()) }, { status: 201 });
+    return jsonWithCors({ ok: true, product: serializeProduct(product.toObject()) }, { status: 201 });
   } catch (err) {
     console.error("[api POST /api/products]", err);
-    return NextResponse.json({ ok: false, error: "Could not create product." }, { status: 500 });
+    return jsonWithCors({ ok: false, error: "Could not create product." }, { status: 500 });
   }
+}
+
+function serializeProduct(product: Record<string, any>) {
+  return {
+    _id: String(product._id),
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    condition: product.condition,
+    price: product.price,
+    currency: product.currency ?? "gbp",
+    imageUrl: product.imageUrl,
+    category: product.category ?? "",
+    stock: product.stock,
+    active: product.active,
+    featured: product.featured,
+    createdAt: product.createdAt
+      ? new Date(product.createdAt).toISOString()
+      : undefined,
+  };
 }

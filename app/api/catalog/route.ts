@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
+import { jsonWithCors, handleOptions } from '@/lib/cors';
 import Brand from '@/models/Brand';
 import RepairCategory from '@/models/RepairCategory';
 import Device from '@/models/Device';
@@ -19,7 +20,7 @@ export async function GET() {
       RepairService.find({ status: 'active' }).populate('serviceTemplate').sort({ order: 1, name: 1 }).lean().exec(),
     ]);
 
-    return NextResponse.json({
+    return jsonWithCors({
       ok: true,
       categories: categories.map((c: any) => ({
         _id: String(c._id),
@@ -69,6 +70,11 @@ export async function GET() {
     });
   } catch (err) {
     console.error('[api GET /api/catalog]', err);
-    return NextResponse.json({ ok: false, error: 'Could not load catalog.' }, { status: 500 });
+    return jsonWithCors({ ok: false, error: 'Could not load catalog.' }, { status: 500 });
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
+  return handleOptions();
 }

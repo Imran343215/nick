@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
+import { jsonWithCors, handleOptions } from '@/lib/cors';
 import Brand from '@/models/Brand';
 import RepairCategory from '@/models/RepairCategory';
 import Device from '@/models/Device';
@@ -20,7 +21,7 @@ export async function GET(
       case 'categories': {
         const docs = await RepairCategory.find({ status: 'active' })
           .sort({ order: 1, name: 1 }).lean().exec();
-        return NextResponse.json({
+        return jsonWithCors({
           ok: true,
           categories: docs.map((c: any) => ({
             _id: String(c._id), name: c.name, slug: c.slug, icon: c.icon,
@@ -34,7 +35,7 @@ export async function GET(
         if (categoryId) filter.category = categoryId;
         const docs = await Brand.find(filter).populate('category')
           .sort({ order: 1, name: 1 }).lean().exec();
-        return NextResponse.json({
+        return jsonWithCors({
           ok: true,
           brands: docs.map((b: any) => ({
             _id: String(b._id), name: b.name, slug: b.slug, logo: b.logo,
@@ -49,7 +50,7 @@ export async function GET(
         const filter: any = { status: 'active' };
         if (brandId) filter.brand = brandId;
         const docs = await Device.find(filter).sort({ order: 1, name: 1 }).lean().exec();
-        return NextResponse.json({
+        return jsonWithCors({
           ok: true,
           devices: docs.map((d: any) => ({
             _id: String(d._id), brand: String(d.brand), name: d.name,
@@ -63,7 +64,7 @@ export async function GET(
         if (deviceId) filter.device = deviceId;
         const docs = await RepairService.find(filter).populate('serviceTemplate')
           .sort({ order: 1, name: 1 }).lean().exec();
-        return NextResponse.json({
+        return jsonWithCors({
           ok: true,
           services: docs.map((s: any) => ({
             _id: String(s._id), device: String(s.device),
@@ -75,10 +76,15 @@ export async function GET(
         });
       }
       default:
-        return NextResponse.json({ ok: false, error: 'Unknown type.' }, { status: 404 });
+        return jsonWithCors({ ok: false, error: 'Unknown type.' }, { status: 404 });
     }
   } catch (err) {
     console.error(`[api GET /api/catalog/${(params as any)?.type}]`, err);
-    return NextResponse.json({ ok: false, error: 'Could not load data.' }, { status: 500 });
+    return jsonWithCors({ ok: false, error: 'Could not load data.' }, { status: 500 });
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
+  return handleOptions();
 }

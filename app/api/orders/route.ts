@@ -5,6 +5,7 @@ import Order from "@/models/Order";
 import Product from "@/models/Product";
 import { clean } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
+import { jsonWithCors, handleOptions } from "@/lib/cors";
 
 export const dynamic = "force-dynamic";
 

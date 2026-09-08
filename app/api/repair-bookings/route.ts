@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import RepairBooking from "@/models/RepairBooking";
 import { validateRepairCoupon } from "@/lib/repair-coupons";
 import { clean, generateTrackingId, validateEmail } from "@/lib/utils";
+import { jsonWithCors, handleOptions } from "@/lib/cors";
 
 export const dynamic = "force-dynamic";
 
@@ -44,12 +45,18 @@ function serializeBooking(doc: BookingDocLike) {
   };
 }
 
+// Handle CORS preflight
+export async function OPTIONS() {
+  return handleOptions();
+}
+
 /** POST /api/repair-bookings — place a repair booking */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId } = await auth();
-    const user = userId ? await currentUser() : null;
+    // Allow unauthenticated bookings (no Clerk auth required) for RN app
+    const { userId } = await auth().catch(() => ({ userId: null }));
+    const user = userId ? await currentUser().catch(() => null) : null;
 
     const customerName = clean(body.customerName) || user?.fullName || "";
     const customerEmail =
@@ -72,26 +79,26 @@ export async function POST(request: Request) {
     const couponCode = clean(body.couponCode).toUpperCase();
     const services = Array.isArray(body.services) ? body.services : [];
 
-    if (!customerName || !validateEmail(customerEmail) || !customerPhone) {
-      return NextResponse.json(
+        if (!customerName || !validateEmail(customerEmail) || !customerPhone) {
+      return jsonWithCors(
         { ok: false, error: "Name, valid email, and phone are required." },
         { status: 400 }
       );
     }
-    if (!brandName || !deviceName || !brandSlug || !deviceSlug) {
-      return NextResponse.json({ ok: false, error: "Device information is missing." }, { status: 400 });
+        if (!brandName || !deviceName || !brandSlug || !deviceSlug) {
+      return jsonWithCors({ ok: false, error: "Device information is missing." }, { status: 400 });
     }
     if (!addressLine || !addressCity || !addressPostcode) {
-      return NextResponse.json({ ok: false, error: "Complete address is required." }, { status: 400 });
+      return jsonWithCors({ ok: false, error: "Complete address is required." }, { status: 400 });
     }
     if (!pickupDateRaw) {
-      return NextResponse.json({ ok: false, error: "Pickup date is required." }, { status: 400 });
+      return jsonWithCors({ ok: false, error: "Pickup date is required." }, { status: 400 });
     }
     if (!agreedToTerms) {
-      return NextResponse.json({ ok: false, error: "You must agree to the terms." }, { status: 400 });
+      return jsonWithCors({ ok: false, error: "You must agree to the terms." }, { status: 400 });
     }
     if (services.length === 0) {
-      return NextResponse.json({ ok: false, error: "Select at least one repair service." }, { status: 400 });
+      return jsonWithCors({ ok: false, error: "Select at least one repair service." }, { status: 400 });
     }
 
     const normalizedServices = services.map((s: Record<string, unknown>) => ({
@@ -107,7 +114,7 @@ export async function POST(request: Request) {
         (s: { name: string; lineTotal: number }) => !s.name || !Number.isFinite(s.lineTotal)
       )
     ) {
-      return NextResponse.json({ ok: false, error: "Invalid service data." }, { status: 400 });
+      return jsonWithCors({ ok: false, error: "Invalid service data." }, { status: 400 });
     }
 
     const subtotal = normalizedServices.reduce(
@@ -123,7 +130,7 @@ export async function POST(request: Request) {
     if (couponCode) {
       const couponResult = await validateRepairCoupon(couponCode, subtotal);
       if (!couponResult.ok) {
-        return NextResponse.json({ ok: false, error: couponResult.error }, { status: 400 });
+                return jsonWithCors({ ok: false, error: couponResult.error }, { status: 400 });
       }
       couponDiscount = couponResult.discount ?? 0;
     }
@@ -138,7 +145,7 @@ export async function POST(request: Request) {
 
     const pickupDate = new Date(pickupDateRaw);
     if (Number.isNaN(pickupDate.getTime())) {
-      return NextResponse.json({ ok: false, error: "Invalid pickup date." }, { status: 400 });
+            return jsonWithCors({ ok: false, error: "Invalid pickup date." }, { status: 400 });
     }
 
     await connectDB();
@@ -171,12 +178,12 @@ export async function POST(request: Request) {
       agreedToTerms,
     });
 
-    return NextResponse.json(
+        return jsonWithCors(
       { ok: true, booking: serializeBooking(booking.toObject()) },
       { status: 201 }
     );
   } catch (err) {
     console.error("[api POST /api/repair-bookings]", err);
-    return NextResponse.json({ ok: false, error: "Could not place booking." }, { status: 500 });
+        return jsonWithCors({ ok: false, error: "Could not place booking." }, { status: 500 });
   }
 }
