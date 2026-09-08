@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import Script from "next/script";
 import ToastProvider from "@/components/ui/toast";
 import type { Metadata, Viewport } from "next";
 import { buildThemeCss, fetchTheme } from "@/lib/theme";
@@ -36,6 +37,12 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Script
+          src="http://127.0.0.1:8000/sdk/ai-assistant.js"
+          data-api-url="http://127.0.0.1:8000/api"
+          data-assistant-id="my-assistant"
+          strategy="afterInteractive"
+        />
         <style dangerouslySetInnerHTML={{ __html: buildThemeCss(theme) }} />
         {/* Pushes saved-theme changes to every open page without reloads. */}
         <ThemeSync initialFingerprint={themeFingerprint(theme)} />
