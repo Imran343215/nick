@@ -64,6 +64,11 @@ export default function Header({ brand }: { brand?: HeaderBrand }) {
             </li>
           </Show>
           <li>
+            <Link href="/sell" className="nav__link" onClick={() => setOpen(false)}>
+              Sell Phone
+            </Link>
+          </li>
+          <li>
             <Link href="/repair" className="btn btn--accent nav__cta" onClick={() => setOpen(false)}>
               Book a Repair
             </Link>

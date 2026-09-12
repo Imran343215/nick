@@ -76,8 +76,9 @@ export async function POST(request: Request) {
     }
 
         return jsonWithCors({ ok: true, order: serializeBooking(booking) });
+  } catch (err) {
     console.error("[api POST /api/repair-status]", err);
-        return jsonWithCors(
+    return jsonWithCors(
       { ok: false, error: "Could not fetch repair status." },
       { status: 500 }
     );
