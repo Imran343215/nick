@@ -240,17 +240,24 @@ export default function BrandsManager() {
             </select>
           </div>
           <div className="field field--full">
-            <label htmlFor="brand-logo">Logo</label>
+            <label htmlFor="brand-logo">Logo (paste a URL or upload)</label>
             <input
               id="brand-logo"
-              type="file"
-              accept="image/*"
-              required={!form.logo}
-              onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+              value={form.logo}
+              onChange={(e) => setForm({ ...form, logo: e.target.value })}
+              placeholder="https://…"
             />
-            {uploading && <span className="form__note">Uploading logo...</span>}
+            <label className="order-delivery-option" style={{ marginTop: "0.5rem" }}>
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+              />
+              {uploading ? "Uploading…" : "Upload logo"}
+            </label>
             {form.logo && (
-              <img src={form.logo} alt="Brand logo preview" className="catalog-admin-thumb" />
+              <img src={form.logo} alt="Brand logo preview" className="catalog-admin-thumb" style={{ marginTop: "0.5rem" }} />
             )}
           </div>
         </div>

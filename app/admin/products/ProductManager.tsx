@@ -391,17 +391,24 @@ export default function ProductManager() {
               />
             </div>
             <div className="field field--full">
-              <label htmlFor="product-image">Product image</label>
+              <label htmlFor="product-image">Product image (paste a URL or upload)</label>
               <input
                 id="product-image"
-                type="file"
-                accept="image/*"
-                required={!form.imageUrl}
-                onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])}
+                value={form.imageUrl}
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                placeholder="https://…"
               />
-              {uploading && <span className="form__note">Uploading image...</span>}
+              <label className="order-delivery-option" style={{ marginTop: "0.5rem" }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])}
+                />
+                {uploading ? "Uploading…" : "Upload image"}
+              </label>
               {form.imageUrl && (
-                <img src={form.imageUrl} alt="Selected product" className="product-admin-preview" />
+                <img src={form.imageUrl} alt="Selected product" className="product-admin-preview" style={{ marginTop: "0.5rem" }} />
               )}
             </div>
           </div>

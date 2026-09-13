@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
+import AdminStatCards from "@/components/admin/StatCards";
+import { AvatarChip } from "@/components/admin/Pill";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
@@ -88,6 +90,36 @@ export default function SellOrdersManager() {
     >
       {error && <div className="alert alert--error">{error}</div>}
 
+      <AdminStatCards
+        stats={[
+          { label: "Total requests", value: orders.length, icon: "📱", color: "purple" },
+          {
+            label: "New",
+            value: orders.filter((o) => o.status === "new").length,
+            icon: "🆕",
+            color: "blue",
+          },
+          {
+            label: "Picked up",
+            value: orders.filter((o) => o.status === "picked_up").length,
+            icon: "🚚",
+            color: "orange",
+          },
+          {
+            label: "Paid out",
+            value: orders.filter((o) => o.status === "paid").length,
+            icon: "💸",
+            color: "green",
+          },
+          {
+            label: "Rejected",
+            value: orders.filter((o) => o.status === "rejected").length,
+            icon: "✕",
+            color: "red",
+          },
+        ]}
+      />
+
       <DataTable
         loading={loading}
         emptyMessage="No sell requests yet."
@@ -108,15 +140,7 @@ export default function SellOrdersManager() {
             key: "customer",
             header: "Customer",
             render: (row) => (
-              <>
-                {row.customerName}
-                <br />
-                <small>
-                  {row.customerEmail}
-                  <br />
-                  {row.customerPhone}
-                </small>
-              </>
+              <AvatarChip name={row.customerName} subtitle={`${row.customerEmail} • ${row.customerPhone}`} />
             ),
           },
           {

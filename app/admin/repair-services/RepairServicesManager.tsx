@@ -256,20 +256,28 @@ export default function RepairServicesManager() {
               </select>
             </div>
             <div className="field field--full">
-              <label htmlFor="template-icon">Service icon</label>
+              <label htmlFor="template-icon">Service icon (paste a URL or upload)</label>
               <input
                 id="template-icon"
-                type="file"
-                accept="image/*"
-                required={!templateForm.icon}
-                onChange={(e) => e.target.files?.[0] && handleTemplateUpload(e.target.files[0])}
+                value={templateForm.icon}
+                onChange={(e) => setTemplateForm({ ...templateForm, icon: e.target.value })}
+                placeholder="https://…"
               />
-              {uploading && <span className="form__note">Uploading icon...</span>}
+              <label className="order-delivery-option" style={{ marginTop: "0.5rem" }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => e.target.files?.[0] && handleTemplateUpload(e.target.files[0])}
+                />
+                {uploading ? "Uploading…" : "Upload icon"}
+              </label>
               {templateForm.icon && (
                 <img
                   src={templateForm.icon}
                   alt="Service icon preview"
                   className="catalog-admin-thumb"
+                  style={{ marginTop: "0.5rem" }}
                 />
               )}
             </div>

@@ -13,6 +13,7 @@ import {
   type SellCart,
 } from "@/lib/sell-cart";
 import { formatPrice } from "@/lib/utils";
+import { resolveAdjustment } from "@/lib/sell-quote";
 import { useToast } from "@/components/ui/toast";
 
 export default function SellQuestionnaire({
@@ -67,14 +68,19 @@ export default function SellQuestionnaire({
     );
   }
 
-  function selectAnswer(question: SellQuestionShape, option: { label: string; priceAdjustment: number }) {
+  function selectAnswer(
+    question: SellQuestionShape,
+    option: { label: string; adjustmentType: "flat" | "percent"; direction: "reduce" | "increase"; value: number }
+  ) {
     setCart((prev) =>
       prev
         ? setAnswerInCart(prev, {
             questionId: question._id,
             questionText: question.text,
             optionLabel: option.label,
-            priceAdjustment: option.priceAdjustment,
+            adjustmentType: option.adjustmentType,
+            direction: option.direction,
+            value: option.value,
           })
         : prev
     );
@@ -123,7 +129,7 @@ export default function SellQuestionnaire({
                 >
                   <h3>{variant.label}</h3>
                   <div className="repair-service-card__price">
-                    <strong>Up to {formatPrice(variant.basePrice)}</strong>
+                    <strong>Max price {formatPrice(variant.basePrice)}</strong>
                   </div>
                   <button
                     type="button"
@@ -152,6 +158,7 @@ export default function SellQuestionnaire({
                   <div className="repair-service-grid">
                     {question.options.map((option) => {
                       const selected = currentAnswer?.optionLabel === option.label;
+                      const delta = resolveAdjustment(cart.basePrice, option);
                       return (
                         <button
                           key={option.label}
@@ -160,6 +167,13 @@ export default function SellQuestionnaire({
                           onClick={() => selectAnswer(question, option)}
                         >
                           {option.label}
+                          {delta !== 0 && (
+                            <small style={{ display: "block", opacity: 0.75 }}>
+                              {option.adjustmentType === "percent"
+                                ? `${option.direction === "increase" ? "+" : "-"}${Math.abs(option.value)}% (${delta >= 0 ? "+" : ""}${formatPrice(delta)})`
+                                : `${delta >= 0 ? "+" : ""}${formatPrice(delta)}`}
+                            </small>
+                          )}
                         </button>
                       );
                     })}
@@ -174,18 +188,30 @@ export default function SellQuestionnaire({
           <h2>Your quote</h2>
           <div className="repair-price-summary__items">
             <div className="repair-price-summary__item">
-              <span className="repair-price-summary__item-name">{device.name} — {cart.variantLabel}</span>
+              <span className="repair-price-summary__item-name">{device.name} — {cart.variantLabel} (Max price)</span>
               <span className="repair-price-summary__item-price">{formatPrice(cart.basePrice)}</span>
             </div>
-            {cart.answers.map((a) => (
-              <div className="repair-price-summary__item" key={a.questionId}>
-                <span className="repair-price-summary__item-name">{a.optionLabel}</span>
-                <span className="repair-price-summary__item-price">
-                  {a.priceAdjustment >= 0 ? "+" : ""}
-                  {formatPrice(a.priceAdjustment)}
-                </span>
-              </div>
-            ))}
+            {cart.answers.map((a) => {
+              const delta = resolveAdjustment(cart.basePrice, a);
+              return (
+                <div className="repair-price-summary__item" key={a.questionId}>
+                  <span className="repair-price-summary__item-name">
+                    {a.optionLabel}
+                    {a.adjustmentType === "percent" && (
+                      <small style={{ opacity: 0.7 }}>
+                        {" "}
+                        ({a.direction === "increase" ? "+" : "-"}
+                        {Math.abs(a.value)}%)
+                      </small>
+                    )}
+                  </span>
+                  <span className="repair-price-summary__item-price">
+                    {delta >= 0 ? "+" : ""}
+                    {formatPrice(delta)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <div className="repair-price-summary__total">
             <span>Estimated payout</span>

@@ -10,9 +10,11 @@ import { firstError, formatPrice, requiredField } from "@/lib/utils";
 import { autoSlugFromName } from "@/lib/upload";
 import { useToast } from "@/components/ui/toast";
 
-type OptionRow = { label: string; priceAdjustment: string };
+type AdjustmentType = "flat" | "percent";
+type Direction = "reduce" | "increase";
+type OptionRow = { label: string; adjustmentType: AdjustmentType; direction: Direction; value: string };
 
-const emptyOption: OptionRow = { label: "", priceAdjustment: "0" };
+const emptyOption: OptionRow = { label: "", adjustmentType: "flat", direction: "reduce", value: "0" };
 
 const emptyForm = {
   text: "",
@@ -21,6 +23,15 @@ const emptyForm = {
   order: "0",
   options: [{ ...emptyOption }, { ...emptyOption }] as OptionRow[],
 };
+
+function describeOption(o: { adjustmentType: AdjustmentType; direction: Direction; value: number }): string {
+  const magnitude = Math.abs(o.value);
+  const sign = o.direction === "increase" ? "+" : "-";
+  if (o.adjustmentType === "percent") {
+    return `${sign}${magnitude}%`;
+  }
+  return `${sign}${formatPrice(magnitude)}`;
+}
 
 export default function SellQuestionsManager() {
   const router = useRouter();
@@ -72,7 +83,9 @@ export default function SellQuestionsManager() {
       order: String(question.order),
       options: question.options.map((o) => ({
         label: o.label,
-        priceAdjustment: String(o.priceAdjustment),
+        adjustmentType: o.adjustmentType,
+        direction: o.direction ?? "reduce",
+        value: String(Math.abs(o.value)),
       })),
     });
     setSlugTouched(true);
@@ -102,8 +115,13 @@ export default function SellQuestionsManager() {
     setError("");
 
     const validOptions = form.options
-      .map((o) => ({ label: o.label.trim(), priceAdjustment: Number(o.priceAdjustment) }))
-      .filter((o) => o.label && Number.isFinite(o.priceAdjustment));
+      .map((o) => ({
+        label: o.label.trim(),
+        adjustmentType: o.adjustmentType,
+        direction: o.direction,
+        value: Math.abs(Number(o.value)),
+      }))
+      .filter((o) => o.label && Number.isFinite(o.value));
 
     const validationError = firstError([
       requiredField(form.text, "Question text"),
@@ -162,7 +180,7 @@ export default function SellQuestionsManager() {
     <AdminShell
       eyebrow="Sell phone catalog"
       title="Sell condition questions"
-      lead="The questionnaire customers answer to get an instant quote. Each option's price adjustment is applied to the variant's base price."
+      lead="The questionnaire customers answer to get an instant quote. Each option can deduct (or add) either a flat amount or a percentage of the variant's max price."
     >
       <div className="admin-toolbar admin-toolbar--compact">
         <button type="button" className="btn btn--primary" onClick={openAdd}>
@@ -182,11 +200,7 @@ export default function SellQuestionsManager() {
             key: "options",
             header: "Options",
             render: (row) => (
-              <small>
-                {row.options
-                  .map((o) => `${o.label} (${o.priceAdjustment >= 0 ? "+" : ""}${formatPrice(o.priceAdjustment)})`)
-                  .join(", ")}
-              </small>
+              <small>{row.options.map((o) => `${o.label} (${describeOption(o)})`).join(", ")}</small>
             ),
           },
           { key: "status", header: "Status" },
@@ -254,19 +268,40 @@ export default function SellQuestionsManager() {
           </div>
 
           <div className="field field--full">
-            <label>Options (each with a price adjustment — negative deducts, positive adds)</label>
+            <label>
+              Options — pick whether each one reduces or increases the price, then enter a plain
+              positive number (percentage of max price, or a flat ₹ amount)
+            </label>
             {form.options.map((option, index) => (
               <div key={index} className="option-row">
                 <input
-                  placeholder="Option label (e.g. Screen: No scratches)"
+                  placeholder="Option label (e.g. Screen: Minor scratches)"
                   value={option.label}
                   onChange={(e) => updateOption(index, "label", e.target.value)}
                 />
+                <select
+                  value={option.direction}
+                  onChange={(e) => updateOption(index, "direction", e.target.value)}
+                  style={{ maxWidth: "130px" }}
+                >
+                  <option value="reduce">Reduce price</option>
+                  <option value="increase">Increase price</option>
+                </select>
+                <select
+                  value={option.adjustmentType}
+                  onChange={(e) => updateOption(index, "adjustmentType", e.target.value)}
+                  style={{ maxWidth: "110px" }}
+                >
+                  <option value="flat">Flat ₹</option>
+                  <option value="percent">Percent %</option>
+                </select>
                 <input
-                  placeholder="Price adjustment"
+                  placeholder={option.adjustmentType === "percent" ? "e.g. 5" : "e.g. 500"}
                   type="number"
-                  value={option.priceAdjustment}
-                  onChange={(e) => updateOption(index, "priceAdjustment", e.target.value)}
+                  min={0}
+                  value={option.value}
+                  onChange={(e) => updateOption(index, "value", e.target.value)}
+                  style={{ maxWidth: "110px" }}
                 />
                 {form.options.length > 2 && (
                   <button type="button" className="btn btn--ghost" onClick={() => removeOption(index)}>

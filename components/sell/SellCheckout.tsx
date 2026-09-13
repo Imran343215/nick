@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { clearSellCart, loadSellCart, sellCartQuote, type SellCart } from "@/lib/sell-cart";
+import { resolveAdjustment } from "@/lib/sell-quote";
 import { useToast } from "@/components/ui/toast";
 import { firstError, formatPrice, requiredField, validEmail, validPhone } from "@/lib/utils";
 
@@ -309,19 +310,31 @@ export default function SellCheckout({
           <div className="repair-price-summary__items">
             <div className="repair-price-summary__item">
               <span className="repair-price-summary__item-name">
-                {cart.deviceName} — {cart.variantLabel}
+                {cart.deviceName} — {cart.variantLabel} (Max price)
               </span>
               <span className="repair-price-summary__item-price">{formatPrice(cart.basePrice)}</span>
             </div>
-            {cart.answers.map((a) => (
-              <div className="repair-price-summary__item" key={a.questionId}>
-                <span className="repair-price-summary__item-name">{a.optionLabel}</span>
-                <span className="repair-price-summary__item-price">
-                  {a.priceAdjustment >= 0 ? "+" : ""}
-                  {formatPrice(a.priceAdjustment)}
-                </span>
-              </div>
-            ))}
+            {cart.answers.map((a) => {
+              const delta = resolveAdjustment(cart.basePrice, a);
+              return (
+                <div className="repair-price-summary__item" key={a.questionId}>
+                  <span className="repair-price-summary__item-name">
+                    {a.optionLabel}
+                    {a.adjustmentType === "percent" && (
+                      <small style={{ opacity: 0.7 }}>
+                        {" "}
+                        ({a.direction === "increase" ? "+" : "-"}
+                        {Math.abs(a.value)}%)
+                      </small>
+                    )}
+                  </span>
+                  <span className="repair-price-summary__item-price">
+                    {delta >= 0 ? "+" : ""}
+                    {formatPrice(delta)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <div className="repair-price-summary__total">
             <span>Estimated payout</span>

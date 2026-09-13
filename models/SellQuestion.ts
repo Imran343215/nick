@@ -1,8 +1,16 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
+export type SellAdjustmentType = "flat" | "percent";
+export type SellAdjustmentDirection = "reduce" | "increase";
+
 export interface ISellQuestionOption {
   label: string;
-  priceAdjustment: number;
+  /** "flat" = a currency amount; "percent" = a % of the variant's max price. */
+  adjustmentType: SellAdjustmentType;
+  /** Whether this option reduces (the common case) or increases the price. */
+  direction: SellAdjustmentDirection;
+  /** Always a positive magnitude — direction decides the sign. */
+  value: number;
 }
 
 export interface ISellQuestion {
@@ -18,8 +26,9 @@ export interface ISellQuestion {
 const SellQuestionOptionSchema = new Schema<ISellQuestionOption>(
   {
     label: { type: String, required: true, trim: true },
-    // Can be negative (deduction) or positive (rare bonus, e.g. "with original box").
-    priceAdjustment: { type: Number, required: true, default: 0 },
+    adjustmentType: { type: String, enum: ["flat", "percent"], required: true, default: "flat" },
+    direction: { type: String, enum: ["reduce", "increase"], required: true, default: "reduce" },
+    value: { type: Number, required: true, default: 0 },
   },
   { _id: false }
 );

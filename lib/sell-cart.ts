@@ -4,7 +4,9 @@ export type SellCartAnswer = {
   questionId: string;
   questionText: string;
   optionLabel: string;
-  priceAdjustment: number;
+  adjustmentType: "flat" | "percent";
+  direction: "reduce" | "increase";
+  value: number;
 };
 
 export type SellCart = {

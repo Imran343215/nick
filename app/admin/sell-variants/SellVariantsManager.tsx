@@ -117,7 +117,7 @@ export default function SellVariantsManager() {
     const validationError = firstError([
       requiredField(form.device, "Device"),
       requiredField(form.label, "Label"),
-      nonNegativeNumber(form.basePrice, "Base price"),
+      nonNegativeNumber(form.basePrice, "Max price"),
     ]);
     if (validationError) {
       setError(validationError);
@@ -209,7 +209,7 @@ export default function SellVariantsManager() {
           { key: "label", header: "Variant" },
           {
             key: "basePrice",
-            header: "Base price",
+            header: "Max price",
             render: (row) => formatPrice(row.basePrice),
           },
           { key: "status", header: "Status" },
@@ -286,7 +286,7 @@ export default function SellVariantsManager() {
             />
           </div>
           <div className="field">
-            <label htmlFor="sv-price">Base price</label>
+            <label htmlFor="sv-price">Max price (best condition)</label>
             <input
               id="sv-price"
               type="number"

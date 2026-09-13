@@ -260,17 +260,24 @@ export default function DevicesManager() {
             </select>
           </div>
           <div className="field field--full">
-            <label htmlFor="device-image">Device image</label>
+            <label htmlFor="device-image">Device image (paste a URL or upload)</label>
             <input
               id="device-image"
-              type="file"
-              accept="image/*"
-              required={!form.image}
-              onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+              value={form.image}
+              onChange={(e) => setForm({ ...form, image: e.target.value })}
+              placeholder="https://…"
             />
-            {uploading && <span className="form__note">Uploading image...</span>}
+            <label className="order-delivery-option" style={{ marginTop: "0.5rem" }}>
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+              />
+              {uploading ? "Uploading…" : "Upload image"}
+            </label>
             {form.image && (
-              <img src={form.image} alt="Device preview" className="catalog-admin-thumb" />
+              <img src={form.image} alt="Device preview" className="catalog-admin-thumb" style={{ marginTop: "0.5rem" }} />
             )}
           </div>
         </div>

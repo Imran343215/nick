@@ -12,6 +12,12 @@ export interface ISellOrderAnswer {
   questionId: string;
   questionText: string;
   optionLabel: string;
+  /** How this option's deduction/bonus was specified at the time of order. */
+  adjustmentType: "flat" | "percent";
+  direction: "reduce" | "increase";
+  value: number;
+  /** The actual currency amount this resolved to against the order's max price
+   * (already computed — percent options don't need the max price to display). */
   priceAdjustment: number;
 }
 
@@ -28,6 +34,7 @@ export interface ISellOrder {
   deviceSlug: string;
   deviceImage?: string;
   variantLabel: string;
+  /** The variant's max price (best condition), before any question deductions. */
   basePrice: number;
   answers: ISellOrderAnswer[];
   finalQuote: number;
@@ -49,6 +56,9 @@ const SellOrderAnswerSchema = new Schema<ISellOrderAnswer>(
     questionId: { type: String, required: true },
     questionText: { type: String, required: true },
     optionLabel: { type: String, required: true },
+    adjustmentType: { type: String, enum: ["flat", "percent"], required: true, default: "flat" },
+    direction: { type: String, enum: ["reduce", "increase"], required: true, default: "reduce" },
+    value: { type: Number, required: true, default: 0 },
     priceAdjustment: { type: Number, required: true, default: 0 },
   },
   { _id: false }

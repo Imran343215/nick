@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
+import AdminStatCards from "@/components/admin/StatCards";
+import { AvatarChip } from "@/components/admin/Pill";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
@@ -90,6 +92,36 @@ export default function RepairBookingsManager() {
     >
       {error && <div className="alert alert--error">{error}</div>}
 
+      <AdminStatCards
+        stats={[
+          { label: "Total bookings", value: bookings.length, icon: "📦", color: "purple" },
+          {
+            label: "New",
+            value: bookings.filter((b) => b.status === "new").length,
+            icon: "🆕",
+            color: "blue",
+          },
+          {
+            label: "In progress",
+            value: bookings.filter((b) => b.status === "in_progress").length,
+            icon: "🔧",
+            color: "orange",
+          },
+          {
+            label: "Completed",
+            value: bookings.filter((b) => b.status === "completed").length,
+            icon: "✅",
+            color: "green",
+          },
+          {
+            label: "Cancelled",
+            value: bookings.filter((b) => b.status === "cancelled").length,
+            icon: "✕",
+            color: "red",
+          },
+        ]}
+      />
+
       <DataTable
         loading={loading}
         emptyMessage="No repair bookings yet."
@@ -110,15 +142,7 @@ export default function RepairBookingsManager() {
             key: "customer",
             header: "Customer",
             render: (row) => (
-              <>
-                {row.customerName}
-                <br />
-                <small>
-                  {row.customerEmail}
-                  <br />
-                  {row.customerPhone}
-                </small>
-              </>
+              <AvatarChip name={row.customerName} subtitle={`${row.customerEmail} • ${row.customerPhone}`} />
             ),
           },
           {

@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db";
 import SellOrder from "@/models/SellOrder";
 import SellVariant from "@/models/SellVariant";
 import SellQuestion from "@/models/SellQuestion";
-import { computeQuote } from "@/lib/sell-quote";
+import { computeQuote, resolveAdjustment } from "@/lib/sell-quote";
 import { clean, generateTrackingId, validateEmail } from "@/lib/utils";
 import { jsonWithCors, handleOptions } from "@/lib/cors";
 
@@ -136,20 +136,32 @@ export async function POST(request: Request) {
         throw new Error("One of the submitted answers refers to an unknown question.");
       }
       const option = (question.options || []).find(
-        (o: { label: string; priceAdjustment: number }) => o.label === clean(a.optionLabel)
+        (o: { label: string; adjustmentType: "flat" | "percent"; direction?: "reduce" | "increase"; value: number }) =>
+          o.label === clean(a.optionLabel)
       );
       if (!option) {
         throw new Error(`Invalid option selected for "${question.text}".`);
       }
+      const adjustmentType: "flat" | "percent" = option.adjustmentType === "percent" ? "percent" : "flat";
+      // Options saved before "direction" existed default to "reduce".
+      const direction: "reduce" | "increase" =
+        (option as { direction?: string }).direction === "increase" ? "increase" : "reduce";
+      const value = Number(option.value ?? 0);
       return {
         questionId: String(question._id),
         questionText: question.text as string,
         optionLabel: option.label as string,
-        priceAdjustment: Number(option.priceAdjustment ?? 0),
+        adjustmentType,
+        direction,
+        value,
+        priceAdjustment: resolveAdjustment(Number(variant.basePrice), { adjustmentType, direction, value }),
       };
     });
 
-    const finalQuote = computeQuote(Number(variant.basePrice), resolvedAnswers);
+    const finalQuote = computeQuote(
+      Number(variant.basePrice),
+      resolvedAnswers.map((a) => ({ adjustmentType: a.adjustmentType, direction: a.direction, value: a.value }))
+    );
 
     const order = await SellOrder.create({
       orderNumber: orderNumber(),

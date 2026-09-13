@@ -18,7 +18,9 @@ export type SellVariantShape = {
 
 export type SellQuestionOptionShape = {
   label: string;
-  priceAdjustment: number;
+  adjustmentType: "flat" | "percent";
+  direction: "reduce" | "increase";
+  value: number;
 };
 
 export type SellQuestionShape = {
@@ -58,7 +60,12 @@ export function serializeSellQuestion(doc: Doc): SellQuestionShape {
     slug: doc.slug as string,
     options: ((doc.options as Doc[]) || []).map((o) => ({
       label: o.label as string,
-      priceAdjustment: Number(o.priceAdjustment ?? 0),
+      adjustmentType: (o.adjustmentType === "percent" ? "percent" : "flat") as "flat" | "percent",
+      // Questions created before "direction" existed default to "reduce" —
+      // the overwhelmingly common case, and what a bare positive number
+      // (e.g. "5%" for a scratch) was always meant to do.
+      direction: (o.direction === "increase" ? "increase" : "reduce") as "reduce" | "increase",
+      value: Number(o.value ?? 0),
     })),
     status: doc.status as SellQuestionShape["status"],
     order: Number(doc.order ?? 0),

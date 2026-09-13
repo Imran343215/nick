@@ -20,16 +20,20 @@ async function uniqueQuestionSlug(base: string, excludeId?: string): Promise<str
   }
 }
 
-type OptionInput = { label?: unknown; priceAdjustment?: unknown };
+type OptionInput = { label?: unknown; adjustmentType?: unknown; direction?: unknown; value?: unknown };
 
-function normalizeOptions(raw: unknown): { label: string; priceAdjustment: number }[] {
+function normalizeOptions(
+  raw: unknown
+): { label: string; adjustmentType: "flat" | "percent"; direction: "reduce" | "increase"; value: number }[] {
   if (!Array.isArray(raw)) return [];
   return raw
     .map((o: OptionInput) => ({
       label: clean(o?.label),
-      priceAdjustment: Number(o?.priceAdjustment),
+      adjustmentType: (o?.adjustmentType === "percent" ? "percent" : "flat") as "flat" | "percent",
+      direction: (o?.direction === "increase" ? "increase" : "reduce") as "reduce" | "increase",
+      value: Number(o?.value),
     }))
-    .filter((o) => o.label && Number.isFinite(o.priceAdjustment));
+    .filter((o) => o.label && Number.isFinite(o.value));
 }
 
 /** GET /api/admin/sell-questions — list sell condition questions (admin). */
