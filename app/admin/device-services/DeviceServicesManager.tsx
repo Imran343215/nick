@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import type {
   BrandShape,
   DeviceShape,
@@ -239,61 +240,63 @@ export default function DeviceServicesManager() {
 
   return (
     <>
-      <div className="admin-toolbar admin-toolbar--compact">
-        <button type="button" className="btn btn--primary" onClick={openAdd}>
-          + Assign service
-        </button>
-        <div className="admin-panel__filters">
-          <label className="admin-filter">
-            Brand{" "}
-            <select
-              value={brandFilter}
-              onChange={(e) => {
-                setBrandFilter(e.target.value);
-                setDeviceFilter("all");
-              }}
-            >
-              <option value="all">All brands</option>
-              {brands.map((brand) => (
-                <option key={brand._id} value={brand._id}>
-                  {brand.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="admin-filter">
-            Device{" "}
-            <select
-              value={deviceFilter}
-              onChange={(e) => setDeviceFilter(e.target.value)}
-            >
-              <option value="all">All devices</option>
-              {filterDevices.map((device) => (
-                <option key={device._id} value={device._id}>
-                  {device.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span className="form__note">{filteredServices.length} shown</span>
-        </div>
-      </div>
-
       {error && !showServiceForm && <div className="alert alert--error">{error}</div>}
 
       <DataTable
         loading={loading}
         emptyMessage="No device services yet — use the Assign service button."
         rows={filteredServices}
+        searchPlaceholder="Search services…"
+        searchKeys={["name", "deviceName", "brandName"]}
+        selectable
+        exportable="device-services.csv"
+        toolbarActions={
+          <button type="button" className="btn btn--primary" onClick={openAdd}>
+            + Assign service
+          </button>
+        }
+        filters={
+          <>
+            <label className="admin-table-filter">
+              Brand
+              <select
+                value={brandFilter}
+                onChange={(e) => {
+                  setBrandFilter(e.target.value);
+                  setDeviceFilter("all");
+                }}
+              >
+                <option value="all">All brands</option>
+                {brands.map((brand) => (
+                  <option key={brand._id} value={brand._id}>
+                    {brand.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="admin-table-filter">
+              Device
+              <select value={deviceFilter} onChange={(e) => setDeviceFilter(e.target.value)}>
+                <option value="all">All devices</option>
+                {filterDevices.map((device) => (
+                  <option key={device._id} value={device._id}>
+                    {device.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        }
         columns={[
           {
             key: "icon",
             header: "Icon",
+            hideable: false,
             render: (row) => (
               <img src={row.icon} alt="" className="catalog-admin-thumb catalog-admin-thumb--table" />
             ),
           },
-          { key: "name", header: "Service" },
+          { key: "name", header: "Service", sortable: true },
           {
             key: "deviceName",
             header: "Device",
@@ -307,6 +310,9 @@ export default function DeviceServicesManager() {
           {
             key: "price",
             header: "Price",
+            sortable: true,
+            align: "right",
+            sortValue: (row) => row.discountPrice ?? row.price,
             render: (row) =>
               row.discountPrice != null ? (
                 <>
@@ -325,25 +331,20 @@ export default function DeviceServicesManager() {
           {
             key: "status",
             header: "Status",
-            render: (row) => (
-              <span
-                className={`status-pill status-pill--${row.status === "active" ? "active" : "inactive"}`}
-              >
-                {row.status}
-              </span>
-            ),
+            sortable: true,
+            render: (row) => <StatusPill status={row.status} />,
           },
-          { key: "order", header: "Order" },
+          { key: "order", header: "Order", sortable: true },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEditService(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => removeService(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label={`Edit ${row.name}`} onClick={() => startEditService(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label={`Delete ${row.name}`} danger onClick={() => removeService(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
 

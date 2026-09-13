@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import AdminStatCards from "@/components/admin/StatCards";
-import { AvatarChip } from "@/components/admin/Pill";
+import { AvatarChip, StatusPill, RowActions, IconButton, DeleteIcon } from "@/components/admin/Pill";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
@@ -36,16 +36,8 @@ export default function RepairBookingsManager() {
   const router = useRouter();
   const toast = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [search, setSearch] = useState("");
-  const visibleBookings = bookings.filter((b) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return [b.customerName, b.customerEmail, b.customerPhone, b.bookingNumber, b.trackingId, b.deviceName]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(q);
-  });
+  const [statusFilter, setStatusFilter] = useState("all");
+  const filteredBookings = bookings.filter((b) => statusFilter === "all" || b.status === statusFilter);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -130,27 +122,30 @@ export default function RepairBookingsManager() {
         ]}
       />
 
-      <div className="admin-toolbar admin-toolbar--compact">
-        <div className="admin-search">
-          <span className="admin-search__icon" aria-hidden="true">
-            🔍
-          </span>
-          <input
-            placeholder="Search bookings by customer, phone, device…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
       <DataTable
         loading={loading}
         emptyMessage="No repair bookings yet."
-        rows={visibleBookings}
+        rows={filteredBookings}
+        searchPlaceholder="Search bookings by customer, phone, device…"
+        searchKeys={["bookingNumber", "trackingId", "customerName", "customerEmail", "customerPhone", "deviceName"]}
+        selectable
+        exportable="repair-bookings.csv"
+        filters={
+          <label className="admin-table-filter">
+            Status
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>{s.replaceAll("_", " ")}</option>
+              ))}
+            </select>
+          </label>
+        }
         columns={[
           {
             key: "bookingNumber",
             header: "Booking",
+            sortable: true,
             render: (row) => (
               <>
                 <strong className="tracking-id">{row.bookingNumber}</strong>
@@ -182,11 +177,14 @@ export default function RepairBookingsManager() {
           {
             key: "device",
             header: "Device",
+            sortable: true,
+            sortValue: (row) => `${row.brandName} ${row.deviceName}`,
             render: (row) => `${row.brandName} ${row.deviceName}`,
           },
           {
             key: "services",
             header: "Services",
+            hideable: false,
             render: (row) => (
               <small>
                 {row.services.map((s) => s.name).join(", ")}
@@ -198,30 +196,41 @@ export default function RepairBookingsManager() {
           {
             key: "pickupDate",
             header: "Pickup",
+            sortable: true,
+            sortValue: (row) => row.pickupDate ?? "",
             render: (row) =>
               row.pickupDate ? new Date(row.pickupDate).toLocaleDateString("en-GB") : "—",
           },
           {
             key: "status",
             header: "Status",
+            sortable: true,
             render: (row) => (
-              <select
-                value={row.status}
-                onChange={(e) => updateStatus(row._id, e.target.value)}
-              >
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+              <>
+                <select
+                  value={row.status}
+                  onChange={(e) => updateStatus(row._id, e.target.value)}
+                  aria-label={`Status for ${row.bookingNumber}`}
+                >
+                  {STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <div style={{ marginTop: "0.35rem" }}>
+                  <StatusPill status={row.status} />
+                </div>
+              </>
             ),
           },
         ]}
         actions={(row) => (
-          <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-            Delete
-          </button>
+          <RowActions>
+            <IconButton label={`Delete ${row.bookingNumber}`} danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
     </AdminShell>

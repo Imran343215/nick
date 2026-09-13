@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import type { BannerSlideShape, BannerSettingsShape } from "@/lib/banner";
 import { firstError, requiredField } from "@/lib/utils";
 import { uploadCatalogImage } from "@/lib/upload";
@@ -224,28 +225,32 @@ export default function BannerManager() {
         loading={loading}
         emptyMessage="No slides yet — add one with an image to show the carousel on your homepage."
         rows={slides}
+        searchPlaceholder="Search slides…"
+        searchKeys={["title", "subtitle"]}
+        selectable
         columns={[
           {
             key: "image",
             header: "Image",
+            hideable: false,
             render: (row) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={row.imageUrl} alt={row.title ?? ""} className="catalog-admin-thumb" />
             ),
           },
-          { key: "title", header: "Title", render: (row) => row.title || "—" },
-          { key: "status", header: "Status" },
-          { key: "order", header: "Order" },
+          { key: "title", header: "Title", sortable: true, render: (row) => row.title || "—" },
+          { key: "status", header: "Status", sortable: true, render: (row) => <StatusPill status={row.status} /> },
+          { key: "order", header: "Order", sortable: true },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label="Edit slide" onClick={() => startEdit(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label="Delete slide" danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
 

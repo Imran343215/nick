@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import type { BrandShape, DeviceShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
 import { useToast } from "@/components/ui/toast";
@@ -162,26 +163,6 @@ export default function DevicesManager() {
 
   return (
     <>
-      <div className="admin-toolbar admin-toolbar--compact">
-        <button type="button" className="btn btn--primary" onClick={openAdd}>
-          + Add device
-        </button>
-        <div className="admin-panel__filters">
-          <label className="admin-filter">
-            Brand{" "}
-            <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
-              <option value="all">All brands</option>
-              {brands.map((brand) => (
-                <option key={brand._id} value={brand._id}>
-                  {brand.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span className="form__note">{filteredDevices.length} shown</span>
-        </div>
-      </div>
-
       {error && !showForm && <div className="alert alert--error">{error}</div>}
 
       <Modal
@@ -296,42 +277,61 @@ export default function DevicesManager() {
           loading={loading}
           emptyMessage="No devices yet — use the Add device button to create one."
           rows={filteredDevices}
+          searchPlaceholder="Search devices…"
+          searchKeys={["name", "slug", "brandName"]}
+          selectable
+          exportable="devices.csv"
+          toolbarActions={
+            <button type="button" className="btn btn--primary" onClick={openAdd}>
+              + Add device
+            </button>
+          }
+          filters={
+            <label className="admin-table-filter">
+              Brand
+              <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
+                <option value="all">All brands</option>
+                {brands.map((brand) => (
+                  <option key={brand._id} value={brand._id}>
+                    {brand.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          }
           columns={[
             {
               key: "image",
               header: "Image",
+              hideable: false,
               render: (row) => (
                 <img src={row.image} alt="" className="catalog-admin-thumb catalog-admin-thumb--table" />
               ),
             },
-            { key: "name", header: "Name" },
+            { key: "name", header: "Name", sortable: true },
             {
               key: "brandName",
               header: "Brand",
+              sortable: true,
               render: (row) => row.brandName ?? "—",
             },
             {
               key: "status",
               header: "Status",
-              render: (row) => (
-                <span
-                  className={`status-pill status-pill--${row.status === "active" ? "active" : "inactive"}`}
-                >
-                  {row.status}
-                </span>
-              ),
+              sortable: true,
+              render: (row) => <StatusPill status={row.status} />,
             },
-            { key: "order", header: "Order" },
+            { key: "order", header: "Order", sortable: true },
           ]}
           actions={(row) => (
-            <>
-              <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
-                Edit
-              </button>
-              <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-                Delete
-              </button>
-            </>
+            <RowActions>
+              <IconButton label={`Edit ${row.name}`} onClick={() => startEdit(row)}>
+                <EditIcon />
+              </IconButton>
+              <IconButton label={`Delete ${row.name}`} danger onClick={() => remove(row._id)}>
+                <DeleteIcon />
+              </IconButton>
+            </RowActions>
           )}
         />
     </>

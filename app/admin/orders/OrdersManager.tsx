@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
+import DataTable from "@/components/admin/DataTable";
+import { AvatarChip, StatusPill } from "@/components/admin/Pill";
 import { formatPrice } from "@/lib/utils";
 
 type Order = {
@@ -89,109 +91,129 @@ export default function OrdersManager() {
     <AdminShell
       title="Orders"
     >
-      <div className="admin-toolbar admin-toolbar--compact">
-        <span className="form__note">{orders.length} orders</span>
-        <button className="btn btn--ghost" onClick={() => load()}>
-          {loading ? "Loading..." : "Refresh"}
-        </button>
-      </div>
-
       {error && <div className="alert alert--error">{error}</div>}
 
-        {loading ? (
-          <div className="empty-note">Loading orders...</div>
-        ) : orders.length === 0 ? (
-          <div className="empty-note">No orders yet.</div>
-        ) : (
-          <div className="admin-table admin-table--orders">
-            <div className="admin-row admin-row--head admin-row--orders">
-              <span>Order</span>
-              <span>Customer</span>
-              <span>Item</span>
-              <span>Payment</span>
-              <span>Invoice</span>
-              <span>Status</span>
-              <span>Shipping</span>
-            </div>
-            {orders.map((o) => (
-              <div className="admin-row admin-row--orders" key={o.id}>
-                <span>
-                  <strong className="tracking-id">{o.orderNumber}</strong>
-                  <br />
-                  <small>
-                    {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ""}
-                  </small>
-                </span>
-                <span>
-                  {o.customerName}
-                  <br />
-                  <small>
-                    {o.customerEmail}
-                    <br />
-                    {o.shippingAddress || "No address"}
-                  </small>
-                </span>
-                <span>
-                  {o.productName}
-                  <br />
-                  <small>
-                    {o.quantity} × {formatPrice(o.unitPrice)} = {formatPrice(o.total)}
-                  </small>
-                </span>
-                <span>
-                  <small>{o.paymentStatus}</small>
-                </span>
-                <span>
-                  {o.invoiceNumber || o.fulfillmentStatus === "completed" ? (
-                    <a
-                      className="btn btn--ghost"
-                      href={`/api/invoices/${encodeURIComponent(o.orderNumber)}`}
-                    >
-                      ⬇ Invoice
-                    </a>
-                  ) : (
-                    <small className="form__note">On delivery</small>
-                  )}
-                </span>
-                <span>
-                  <select
-                    value={o.fulfillmentStatus}
-                    disabled={savingId === o.id}
-                    onChange={(e) => save(o.id, { fulfillmentStatus: e.target.value })}
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </span>
-                <span className="admin-ship">
-                  <input
-                    aria-label="Courier"
-                    placeholder="Courier…"
-                    defaultValue={o.shippingCarrier}
-                    disabled={savingId === o.id}
-                    onBlur={(e) =>
-                      o.shippingCarrier !== e.target.value &&
-                        save(o.id, { shippingCarrier: e.target.value })
-                    }
-                  />
-                  <input
-                    aria-label="Tracking number"
-                    placeholder="Tracking no…"
-                    defaultValue={o.shippingNumber}
-                    disabled={savingId === o.id}
-                    onBlur={(e) =>
-                      o.shippingNumber !== e.target.value &&
-                        save(o.id, { shippingNumber: e.target.value })
-                    }
-                  />
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+      <DataTable
+        loading={loading}
+        emptyMessage="No orders yet."
+        rows={orders}
+        rowId={(row) => row.id}
+        searchPlaceholder="Search orders by customer, email, order no…"
+        searchKeys={["orderNumber", "customerName", "customerEmail", "productName"]}
+        selectable
+        exportable="orders.csv"
+        toolbarActions={
+          <button type="button" className="admin-table-tool-btn" onClick={() => load()}>
+            Refresh
+          </button>
+        }
+        columns={[
+          {
+            key: "orderNumber",
+            header: "Order",
+            sortable: true,
+            sortValue: (row) => row.orderNumber,
+            render: (row) => (
+              <>
+                <strong className="tracking-id">{row.orderNumber}</strong>
+                <br />
+                <small>{row.createdAt ? new Date(row.createdAt).toLocaleDateString() : ""}</small>
+              </>
+            ),
+          },
+          {
+            key: "customerName",
+            header: "Customer",
+            sortable: true,
+            render: (row) => (
+              <AvatarChip name={row.customerName} subtitle={row.customerEmail} />
+            ),
+          },
+          {
+            key: "productName",
+            header: "Item",
+            sortable: true,
+            render: (row) => (
+              <>
+                {row.productName}
+                <br />
+                <small>
+                  {row.quantity} × {formatPrice(row.unitPrice)} = {formatPrice(row.total)}
+                </small>
+              </>
+            ),
+          },
+          {
+            key: "paymentStatus",
+            header: "Payment",
+            sortable: true,
+            render: (row) => <StatusPill status={row.paymentStatus} />,
+          },
+          {
+            key: "fulfillmentStatus",
+            header: "Status",
+            sortable: true,
+            render: (row) => (
+              <>
+                <select
+                  value={row.fulfillmentStatus}
+                  disabled={savingId === row.id}
+                  aria-label={`Status for ${row.orderNumber}`}
+                  onChange={(e) => save(row.id, { fulfillmentStatus: e.target.value })}
+                >
+                  {STATUSES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <div style={{ marginTop: "0.35rem" }}>
+                  <StatusPill status={row.fulfillmentStatus} />
+                </div>
+              </>
+            ),
+          },
+          {
+            key: "shipping",
+            header: "Shipping",
+            hideable: false,
+            render: (row) => (
+              <span className="admin-ship">
+                <input
+                  aria-label="Courier"
+                  placeholder="Courier…"
+                  defaultValue={row.shippingCarrier}
+                  disabled={savingId === row.id}
+                  onBlur={(e) =>
+                    row.shippingCarrier !== e.target.value &&
+                    save(row.id, { shippingCarrier: e.target.value })
+                  }
+                />
+                <input
+                  aria-label="Tracking number"
+                  placeholder="Tracking no…"
+                  defaultValue={row.shippingNumber}
+                  disabled={savingId === row.id}
+                  onBlur={(e) =>
+                    row.shippingNumber !== e.target.value &&
+                    save(row.id, { shippingNumber: e.target.value })
+                  }
+                />
+              </span>
+            ),
+          },
+          {
+            key: "invoice",
+            header: "Invoice",
+            render: (row) =>
+              row.invoiceNumber || row.fulfillmentStatus === "completed" ? (
+                <a className="admin-table-tool-btn" href={`/api/invoices/${encodeURIComponent(row.orderNumber)}`}>
+                  ⬇ Invoice
+                </a>
+              ) : (
+                <small className="form__note">On delivery</small>
+              ),
+          },
+        ]}
+      />
     </AdminShell>
   );
 }

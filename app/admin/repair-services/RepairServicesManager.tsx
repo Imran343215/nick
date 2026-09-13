@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import type { ServiceTemplateShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
 import { useToast } from "@/components/ui/toast";
@@ -145,51 +146,49 @@ export default function RepairServicesManager() {
 
   return (
     <>
-      <div className="admin-toolbar admin-toolbar--compact">
-        <button type="button" className="btn btn--primary" onClick={openAdd}>
-          + Create template
-        </button>
-        <span className="form__note">{serviceTemplates.length} templates</span>
-      </div>
-
       {error && !showTemplateForm && <div className="alert alert--error">{error}</div>}
 
       <DataTable
         loading={loading}
         emptyMessage="No service templates yet — use the Create template button."
         rows={serviceTemplates}
+        searchPlaceholder="Search templates…"
+        searchKeys={["name", "slug"]}
+        selectable
+        exportable="service-templates.csv"
+        toolbarActions={
+          <button type="button" className="btn btn--primary" onClick={openAdd}>
+            + Create template
+          </button>
+        }
         columns={[
           {
             key: "icon",
             header: "Icon",
+            hideable: false,
             render: (row) => (
               <img src={row.icon} alt="" className="catalog-admin-thumb catalog-admin-thumb--table" />
             ),
           },
-          { key: "name", header: "Service" },
+          { key: "name", header: "Service", sortable: true },
           { key: "slug", header: "Slug" },
           {
             key: "status",
             header: "Status",
-            render: (row) => (
-              <span
-                className={`status-pill status-pill--${row.status === "active" ? "active" : "inactive"}`}
-              >
-                {row.status}
-              </span>
-            ),
+            sortable: true,
+            render: (row) => <StatusPill status={row.status} />,
           },
-          { key: "order", header: "Order" },
+          { key: "order", header: "Order", sortable: true },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEditTemplate(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => removeTemplate(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label={`Edit ${row.name}`} onClick={() => startEditTemplate(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label={`Delete ${row.name}`} danger onClick={() => removeTemplate(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
 

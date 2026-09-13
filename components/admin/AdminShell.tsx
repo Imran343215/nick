@@ -4,36 +4,40 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode } from "react";
 
-const NAV_GROUPS: { label: string; items: { href: string; label: string; exact?: boolean }[] }[] = [
+const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: string; exact?: boolean }[] }[] = [
   {
     label: "Main",
-    items: [{ href: "/admin", label: "Repair bookings", exact: true }],
-  },
-  {
-    label: "Store",
     items: [
-      { href: "/admin/orders", label: "Orders" },
-      { href: "/admin/products", label: "Store products" },
-      { href: "/admin/coupons", label: "Coupons" },
+      { href: "/admin", label: "Dashboard", icon: "▦", exact: true },
+      { href: "/admin/orders", label: "Orders", icon: "🧾" },
     ],
   },
   {
-    label: "Repair catalog",
-    items: [{ href: "/admin/repair-services", label: "Repair services" }],
+    label: "Inventory & Sales",
+    items: [
+      { href: "/admin/products", label: "Products", icon: "📦" },
+      { href: "/admin/coupons", label: "Coupons", icon: "🎟" },
+    ],
+  },
+  {
+    label: "Repair",
+    items: [
+      { href: "/admin/repair-services", label: "Repair catalog", icon: "🔧" },
+    ],
   },
   {
     label: "Sell phone",
     items: [
-      { href: "/admin/sell-orders", label: "Sell orders" },
-      { href: "/admin/sell-variants", label: "Sell variants" },
-      { href: "/admin/sell-questions", label: "Sell questions" },
+      { href: "/admin/sell-orders", label: "Sell orders", icon: "📱" },
+      { href: "/admin/sell-variants", label: "Sell variants", icon: "⚙" },
+      { href: "/admin/sell-questions", label: "Sell questions", icon: "❓" },
     ],
   },
   {
     label: "Site",
     items: [
-      { href: "/admin/banner", label: "Banner / Carousel" },
-      { href: "/admin/theme", label: "Theme customizer" },
+      { href: "/admin/banner", label: "Banner / Carousel", icon: "🖼" },
+      { href: "/admin/theme", label: "Theme", icon: "🎨" },
     ],
   },
 ];
@@ -84,6 +88,7 @@ export default function AdminShell({
                       href={item.href}
                       className={`admin-sidebar__link${active ? " admin-sidebar__link--active" : ""}`}
                     >
+                      <span className="admin-sidebar__icon" aria-hidden="true">{item.icon}</span>
                       {item.label}
                     </Link>
                   );

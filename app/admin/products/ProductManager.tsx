@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import { formatPrice, firstError, nonNegativeNumber, requiredField } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
@@ -213,30 +214,31 @@ export default function ProductManager() {
 
   return (
     <>
-      <div className="admin-toolbar admin-toolbar--compact">
-        <button type="button" className="btn btn--primary" onClick={openAdd}>
-          + Add product
-        </button>
-        <div className="admin-panel__filters">
-          <span className="form__note">
-            {products.length} products · {categories.length} categories
-          </span>
-          <button className="btn btn--ghost" onClick={() => router.push("/store")}>
-            View store
-          </button>
-        </div>
-      </div>
-
       {error && !showForm && <div className="alert alert--error">{error}</div>}
 
       <DataTable
         loading={loading}
         emptyMessage="No products yet — use the Add product button to create one."
         rows={products}
+        searchPlaceholder="Search products…"
+        searchKeys={["name", "category"]}
+        selectable
+        exportable="products.csv"
+        toolbarActions={
+          <>
+            <button type="button" className="admin-table-tool-btn" onClick={() => router.push("/store")}>
+              View store
+            </button>
+            <button type="button" className="btn btn--primary" onClick={openAdd}>
+              + Add product
+            </button>
+          </>
+        }
         columns={[
           {
             key: "image",
             header: "Image",
+            hideable: false,
             render: (row) => (
               <img
                 src={row.imageUrl}
@@ -248,6 +250,8 @@ export default function ProductManager() {
           {
             key: "name",
             header: "Product",
+            sortable: true,
+            sortValue: (row) => row.name,
             render: (row) => (
               <>
                 {row.name}
@@ -262,6 +266,8 @@ export default function ProductManager() {
           {
             key: "price",
             header: "Price",
+            sortable: true,
+            align: "right",
             render: (row) => formatPrice(row.price),
           },
           {
@@ -293,22 +299,18 @@ export default function ProductManager() {
             key: "featured",
             header: "Featured",
             render: (row) =>
-              row.featured ? (
-                <span className="status-pill status-pill--active">featured</span>
-              ) : (
-                "—"
-              ),
+              row.featured ? <StatusPill status="active" /> : "—",
           },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => removeProduct(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label={`Edit ${row.name}`} onClick={() => startEdit(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label={`Delete ${row.name}`} danger onClick={() => removeProduct(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
 

@@ -7,6 +7,7 @@ import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import type { SellQuestionShape } from "@/lib/sell-catalog";
 import { firstError, formatPrice, requiredField } from "@/lib/utils";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import { autoSlugFromName } from "@/lib/upload";
 import { useToast } from "@/components/ui/toast";
 
@@ -43,10 +44,6 @@ export default function SellQuestionsManager() {
   const [error, setError] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState("");
-  const visibleQuestions = questions.filter((q) =>
-    q.text.toLowerCase().includes(search.trim().toLowerCase())
-  );
 
   async function loadQuestions() {
     const res = await fetch("/api/admin/sell-questions");
@@ -189,27 +186,18 @@ export default function SellQuestionsManager() {
         </button>
       }
     >
-      <div className="admin-toolbar admin-toolbar--compact">
-        <div className="admin-search">
-          <span className="admin-search__icon" aria-hidden="true">
-            🔍
-          </span>
-          <input
-            placeholder="Search questions…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
       {error && <div className="alert alert--error">{error}</div>}
 
       <DataTable
         loading={loading}
         emptyMessage="No condition questions yet — add at least one so customers can get a quote."
-        rows={visibleQuestions}
+        rows={questions}
+        searchPlaceholder="Search questions…"
+        searchKeys={["text", "slug"]}
+        selectable
+        exportable="sell-questions.csv"
         columns={[
-          { key: "text", header: "Question" },
+          { key: "text", header: "Question", sortable: true },
           {
             key: "options",
             header: "Options",
@@ -217,18 +205,18 @@ export default function SellQuestionsManager() {
               <small>{row.options.map((o) => `${o.label} (${describeOption(o)})`).join(", ")}</small>
             ),
           },
-          { key: "status", header: "Status" },
-          { key: "order", header: "Order" },
+          { key: "status", header: "Status", sortable: true, render: (row) => <StatusPill status={row.status} /> },
+          { key: "order", header: "Order", sortable: true },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label="Edit question" onClick={() => startEdit(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label="Delete question" danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
 

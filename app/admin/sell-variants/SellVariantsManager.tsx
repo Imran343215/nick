@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import type { BrandShape, DeviceShape } from "@/lib/repair-catalog";
 import type { SellVariantShape } from "@/lib/sell-catalog";
 import { firstError, formatPrice, nonNegativeNumber, requiredField } from "@/lib/utils";
@@ -28,7 +29,6 @@ export default function SellVariantsManager() {
   const [allDevices, setAllDevices] = useState<DeviceShape[]>([]);
   const [variants, setVariants] = useState<SellVariantShape[]>([]);
   const [deviceFilter, setDeviceFilter] = useState("all");
-  const [search, setSearch] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,12 +80,9 @@ export default function SellVariantsManager() {
   );
 
   const visibleVariants = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return variants;
-    return variants.filter((v) =>
-      [v.label, v.deviceName, v.brandName].filter(Boolean).join(" ").toLowerCase().includes(q)
-    );
-  }, [variants, search]);
+    const byDevice = deviceFilter === "all" ? variants : variants.filter((v) => v.device === deviceFilter);
+    return byDevice;
+  }, [variants, deviceFilter]);
 
   function resetForm() {
     setForm(emptyForm);
@@ -187,20 +184,19 @@ export default function SellVariantsManager() {
         </button>
       }
     >
-      <div className="admin-toolbar admin-toolbar--compact">
-        <div className="admin-search">
-          <span className="admin-search__icon" aria-hidden="true">
-            🔍
-          </span>
-          <input
-            placeholder="Search variants…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="admin-panel__filters">
-          <label className="admin-filter">
-            Device{" "}
+      {error && <div className="alert alert--error">{error}</div>}
+
+      <DataTable
+        loading={loading}
+        emptyMessage="No sell variants yet — add one so a device shows up on the Sell Phone page."
+        rows={visibleVariants}
+        searchPlaceholder="Search variants…"
+        searchKeys={["label", "deviceName", "brandName"]}
+        selectable
+        exportable="sell-variants.csv"
+        filters={
+          <label className="admin-table-filter">
+            Device
             <select value={deviceFilter} onChange={(e) => setDeviceFilter(e.target.value)}>
               <option value="all">All devices</option>
               {allDevices.map((device) => (
@@ -210,39 +206,35 @@ export default function SellVariantsManager() {
               ))}
             </select>
           </label>
-        </div>
-      </div>
-
-      {error && <div className="alert alert--error">{error}</div>}
-
-      <DataTable
-        loading={loading}
-        emptyMessage="No sell variants yet — add one so a device shows up on the Sell Phone page."
-        rows={visibleVariants}
+        }
         columns={[
           {
             key: "device",
             header: "Device",
+            sortable: true,
+            sortValue: (row) => `${row.brandName ?? ""} ${row.deviceName ?? ""}`,
             render: (row) => `${row.brandName ?? ""} ${row.deviceName ?? ""}`,
           },
-          { key: "label", header: "Variant" },
+          { key: "label", header: "Variant", sortable: true },
           {
             key: "basePrice",
             header: "Max price",
+            sortable: true,
+            align: "right",
             render: (row) => formatPrice(row.basePrice),
           },
-          { key: "status", header: "Status" },
-          { key: "order", header: "Order" },
+          { key: "status", header: "Status", sortable: true, render: (row) => <StatusPill status={row.status} /> },
+          { key: "order", header: "Order", sortable: true },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label={`Edit ${row.label}`} onClick={() => startEdit(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label={`Delete ${row.label}`} danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
 

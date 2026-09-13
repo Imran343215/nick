@@ -21,6 +21,65 @@ export function statusPillColor(status: string): "green" | "red" | "orange" | "b
   return "gray";
 }
 
+export function StatusPill({ status }: { status: string }) {
+  return (
+    <Pill color={statusPillColor(status)}>
+      {status.replaceAll("_", " ")}
+    </Pill>
+  );
+}
+
+/** Back-compat alias: the old codebase used `.status-pill` spans. */
+export function StatusBadge({ status }: { status: string }) {
+  return <StatusPill status={status} />;
+}
+
+export function RowActions({ children }: { children: ReactNode }) {
+  return <span className="admin-row-actions">{children}</span>;
+}
+
+export function IconButton({
+  label,
+  title,
+  onClick,
+  danger,
+  children,
+}: {
+  label: string;
+  title?: string;
+  onClick: () => void;
+  danger?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={title ?? label}
+      onClick={onClick}
+      className={`admin-icon-btn${danger ? " admin-icon-btn--danger" : ""}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function EditIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    </svg>
+  );
+}
+
+export function DeleteIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    </svg>
+  );
+}
+
 export function AvatarChip({ name, subtitle }: { name: string; subtitle?: string }) {
   const initials = name
     .trim()

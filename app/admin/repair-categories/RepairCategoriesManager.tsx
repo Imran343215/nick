@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import type { CategoryShape } from "@/lib/repair-catalog";
 import { autoSlugFromName, uploadCatalogImage } from "@/lib/upload";
 import { useToast } from "@/components/ui/toast";
@@ -145,13 +146,6 @@ export default function RepairCategoriesManager() {
 
   return (
     <>
-      <div className="admin-toolbar admin-toolbar--compact">
-        <button type="button" className="btn btn--primary" onClick={openAdd}>
-          + Add category
-        </button>
-        <span className="form__note">{categories.length} total</span>
-      </div>
-
       {error && !showForm && <div className="alert alert--error">{error}</div>}
 
       <Modal
@@ -251,38 +245,43 @@ export default function RepairCategoriesManager() {
         loading={loading}
         emptyMessage="No categories yet — use the Add category button to create one."
         rows={categories}
+        searchPlaceholder="Search categories…"
+        searchKeys={["name", "slug"]}
+        selectable
+        exportable="repair-categories.csv"
+        toolbarActions={
+          <button type="button" className="btn btn--primary" onClick={openAdd}>
+            + Add category
+          </button>
+        }
         columns={[
           {
             key: "icon",
             header: "Icon",
+            hideable: false,
             render: (row) => (
               <img src={row.icon} alt="" className="catalog-admin-thumb catalog-admin-thumb--table" />
             ),
           },
-          { key: "name", header: "Name" },
+          { key: "name", header: "Name", sortable: true },
           { key: "slug", header: "Slug" },
           {
             key: "status",
             header: "Status",
-            render: (row) => (
-              <span
-                className={`status-pill status-pill--${row.status === "active" ? "active" : "inactive"}`}
-              >
-                {row.status}
-              </span>
-            ),
+            sortable: true,
+            render: (row) => <StatusPill status={row.status} />,
           },
-          { key: "order", header: "Order" },
+          { key: "order", header: "Order", sortable: true },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label={`Edit ${row.name}`} onClick={() => startEdit(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label={`Delete ${row.name}`} danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
     </>

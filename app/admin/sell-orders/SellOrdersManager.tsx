@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import AdminStatCards from "@/components/admin/StatCards";
-import { AvatarChip } from "@/components/admin/Pill";
+import { AvatarChip, StatusPill, RowActions, IconButton, DeleteIcon } from "@/components/admin/Pill";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
@@ -36,16 +36,8 @@ export default function SellOrdersManager() {
   const router = useRouter();
   const toast = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [search, setSearch] = useState("");
-  const visibleOrders = orders.filter((o) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return [o.customerName, o.customerEmail, o.customerPhone, o.orderNumber, o.trackingId, o.deviceName]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(q);
-  });
+  const [statusFilter, setStatusFilter] = useState("all");
+  const filteredOrders = orders.filter((o) => statusFilter === "all" || o.status === statusFilter);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -131,11 +123,27 @@ export default function SellOrdersManager() {
       <DataTable
         loading={loading}
         emptyMessage="No sell requests yet."
-        rows={visibleOrders}
+        rows={filteredOrders}
+        searchPlaceholder="Search sell orders by customer, phone, device…"
+        searchKeys={["orderNumber", "trackingId", "customerName", "customerEmail", "customerPhone", "deviceName"]}
+        selectable
+        exportable="sell-orders.csv"
+        filters={
+          <label className="admin-table-filter">
+            Status
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>{s.replaceAll("_", " ")}</option>
+              ))}
+            </select>
+          </label>
+        }
         columns={[
           {
             key: "orderNumber",
             header: "Order",
+            sortable: true,
             render: (row) => (
               <>
                 <strong className="tracking-id">{row.orderNumber}</strong>
@@ -159,6 +167,9 @@ export default function SellOrdersManager() {
           {
             key: "quote",
             header: "Quote",
+            sortable: true,
+            sortValue: (row) => row.finalQuote,
+            align: "right",
             render: (row) => (
               <small>
                 {formatPrice(row.finalQuote)}
@@ -181,26 +192,36 @@ export default function SellOrdersManager() {
           {
             key: "pickupDate",
             header: "Pickup date",
+            sortable: true,
+            sortValue: (row) => row.pickupDate ?? "",
             render: (row) => (row.pickupDate ? new Date(row.pickupDate).toLocaleDateString("en-GB") : "—"),
           },
           {
             key: "status",
             header: "Status",
+            sortable: true,
             render: (row) => (
-              <select value={row.status} onChange={(e) => updateStatus(row._id, e.target.value)}>
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+              <>
+                <select value={row.status} onChange={(e) => updateStatus(row._id, e.target.value)} aria-label={`Status for ${row.orderNumber}`}>
+                  {STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <div style={{ marginTop: "0.35rem" }}>
+                  <StatusPill status={row.status} />
+                </div>
+              </>
             ),
           },
         ]}
         actions={(row) => (
-          <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-            Delete
-          </button>
+          <RowActions>
+            <IconButton label={`Delete ${row.orderNumber}`} danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
     </AdminShell>

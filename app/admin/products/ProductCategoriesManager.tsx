@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import { useToast } from "@/components/ui/toast";
 
 type Category = { _id: string; name: string; slug: string };
@@ -76,13 +77,6 @@ export default function ProductCategoriesManager() {
 
   return (
     <>
-      <div className="admin-toolbar admin-toolbar--compact">
-        <button type="button" className="btn btn--primary" onClick={() => setShowForm(true)}>
-          + Add category
-        </button>
-        <span className="form__note">{categories.length} total</span>
-      </div>
-
       {error && !showForm && <div className="alert alert--error">{error}</div>}
 
       <Modal open={showForm} title="Add category" onClose={closeModal}>
@@ -118,14 +112,25 @@ export default function ProductCategoriesManager() {
         loading={loading}
         emptyMessage="No categories yet — use the Add category button to create one."
         rows={categories}
+        searchPlaceholder="Search categories…"
+        searchKeys={["name", "slug"]}
+        selectable
+        exportable="product-categories.csv"
+        toolbarActions={
+          <button type="button" className="btn btn--primary" onClick={() => setShowForm(true)}>
+            + Add category
+          </button>
+        }
         columns={[
-          { key: "name", header: "Name" },
+          { key: "name", header: "Name", sortable: true },
           { key: "slug", header: "Slug" },
         ]}
         actions={(row) => (
-          <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-            Delete
-          </button>
+          <RowActions>
+            <IconButton label={`Delete ${row.name}`} danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
     </>

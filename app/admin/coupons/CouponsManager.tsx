@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
+import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import { useToast } from "@/components/ui/toast";
 
 type Coupon = {
@@ -32,8 +33,6 @@ export default function CouponsManager() {
   const router = useRouter();
   const toast = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [search, setSearch] = useState("");
-  const visibleCoupons = coupons.filter((c) => c.code.toLowerCase().includes(search.trim().toLowerCase()));
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -161,16 +160,6 @@ export default function CouponsManager() {
         </button>
       }
     >
-      <div className="admin-toolbar admin-toolbar--compact">
-        <div className="admin-search">
-          <span className="admin-search__icon" aria-hidden="true">
-            🔍
-          </span>
-          <input placeholder="Search coupons…" value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
-        <span className="form__note">{coupons.length} total</span>
-      </div>
-
       {error && !showForm && <div className="alert alert--error">{error}</div>}
 
       <Modal
@@ -275,12 +264,18 @@ export default function CouponsManager() {
       <DataTable
         loading={loading}
         emptyMessage="No coupons yet — use the Add coupon button to create one."
-        rows={visibleCoupons}
+        rows={coupons}
+        searchPlaceholder="Search coupons…"
+        searchKeys={["code", "status"]}
+        selectable
+        exportable="coupons.csv"
         columns={[
-          { key: "code", header: "Code" },
+          { key: "code", header: "Code", sortable: true },
           {
             key: "discountType",
             header: "Discount",
+            sortable: true,
+            sortValue: (row) => row.value,
             render: (row) =>
               row.discountType === "percent" ? `${row.value}%` : `£${row.value.toFixed(2)}`,
           },
@@ -292,30 +287,27 @@ export default function CouponsManager() {
           {
             key: "status",
             header: "Status",
-            render: (row) => (
-              <span
-                className={`status-pill status-pill--${row.status === "active" ? "active" : "inactive"}`}
-              >
-                {row.status}
-              </span>
-            ),
+            sortable: true,
+            render: (row) => <StatusPill status={row.status} />,
           },
           {
             key: "expiresAt",
             header: "Expires",
+            sortable: true,
+            sortValue: (row) => row.expiresAt ?? "",
             render: (row) =>
               row.expiresAt ? new Date(row.expiresAt).toLocaleDateString("en-GB") : "—",
           },
         ]}
         actions={(row) => (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => startEdit(row)}>
-              Edit
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => remove(row._id)}>
-              Delete
-            </button>
-          </>
+          <RowActions>
+            <IconButton label={`Edit ${row.code}`} onClick={() => startEdit(row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton label={`Delete ${row.code}`} danger onClick={() => remove(row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          </RowActions>
         )}
       />
     </AdminShell>
