@@ -406,19 +406,26 @@ app.post("/send", async (req, res) => {
 // or ANSI-mangle the wide ASCII art, so the phone decodes garbage and simply
 // won't link. This page renders the current QR crisply on a white background.
 app.get("/qr", (_req, res) => {
-  res.type("html").send(
-    latestQr
-      ? '<!doctype html><meta charset="utf-8"><title>Link WhatsApp device</title>' +
-          '<body style="font-family:sans-serif;text-align:center;background:#fff;color:#111">' +
-          "<h3>Phone: WhatsApp → Settings → Linked devices → Link a device</h3>" +
-          '<pre style="display:inline-block;padding:12px;line-height:1;font-size:13px">' +
-          latestQr +
-          "</pre>" +
-          `<p>Latest QR (#${qrCount}) — it regenerates every minute while waiting. Refresh if needed.</p></body>`
-      : "<h3>No QR is currently pending</h3>" +
-          '<p>Either the phone is already linked (check <a href="/health">/health</a>) ' +
-          "or the session is starting up.</p>"
-  );
+  const qrHtml = latestQr
+    ? '<!doctype html><meta charset="utf-8"><title>Link WhatsApp device</title>' +
+      '<body style="font-family:sans-serif;text-align:center;background:#fff;color:#111;padding:20px">' +
+      "<h3>📱 Phone: WhatsApp → Settings → Linked devices → Link a device</h3>" +
+      '<pre style="display:inline-block;padding:12px;line-height:1;font-size:13px;background:#f9f9f9;border-radius:8px">' +
+      latestQr +
+      "</pre>" +
+      `<p style="color:#666">Latest QR (#${qrCount}) — it regenerates every ~60s while waiting.</p>` +
+      '<p><button onclick="location.reload()" style="padding:10px 20px;font-size:16px;cursor:pointer;border:none;background:#25d366;color:#fff;border-radius:8px">🔄 Refresh QR</button></p>' +
+      '<script>setTimeout(()=>location.reload(), 50000);</script>' +
+      "</body>"
+    : '<!doctype html><meta charset="utf-8"><title>Link WhatsApp device</title>' +
+      '<body style="font-family:sans-serif;text-align:center;background:#fff;color:#111;padding:20px">' +
+      "<h3>⏳ No QR is currently pending</h3>" +
+      "<p>The session is starting up or waiting for a new QR to generate.</p>" +
+      '<p><button onclick="location.reload()" style="padding:10px 20px;font-size:16px;cursor:pointer;border:none;background:#25d366;color:#fff;border-radius:8px">🔄 Refresh</button></p>' +
+      '<script>setTimeout(()=>location.reload(), 15000);</script>' +
+      '<p style="color:#999;margin-top:20px">If this persists, check <a href="/health">/health</a></p>' +
+      "</body>";
+  res.type("html").send(qrHtml);
 });
 
 app.get("/health", (req, res) => {
