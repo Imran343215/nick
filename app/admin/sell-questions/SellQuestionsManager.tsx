@@ -256,19 +256,17 @@ export default function SellQuestionsManager() {
           <div className="field field--full">
             <label>Options (each with a price adjustment — negative deducts, positive adds)</label>
             {form.options.map((option, index) => (
-              <div key={index} className="admin-toolbar admin-toolbar--compact" style={{ marginBottom: "0.5rem" }}>
+              <div key={index} className="option-row">
                 <input
                   placeholder="Option label (e.g. Screen: No scratches)"
                   value={option.label}
                   onChange={(e) => updateOption(index, "label", e.target.value)}
-                  style={{ flex: 2 }}
                 />
                 <input
                   placeholder="Price adjustment"
                   type="number"
                   value={option.priceAdjustment}
                   onChange={(e) => updateOption(index, "priceAdjustment", e.target.value)}
-                  style={{ flex: 1 }}
                 />
                 {form.options.length > 2 && (
                   <button type="button" className="btn btn--ghost" onClick={() => removeOption(index)}>

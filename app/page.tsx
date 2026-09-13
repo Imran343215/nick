@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import BannerCarousel from "@/components/BannerCarousel";
 import Services from "@/components/Services";
 import HowItWorks from "@/components/HowItWorks";
 import TrackRepair from "@/components/TrackRepair";
@@ -11,6 +12,7 @@ import { fetchActiveCategories } from "@/lib/repair-catalog";
 import { fetchProducts } from "@/lib/products";
 import { fetchCategories } from "@/lib/categories";
 import { fetchTheme, type SectionKey } from "@/lib/theme";
+import { fetchPublicBanner } from "@/lib/banner";
 import { Fragment, type ReactNode } from "react";
 import PreviewBridge from "@/components/PreviewBridge";
 
@@ -18,11 +20,12 @@ import PreviewBridge from "@/components/PreviewBridge";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [repairCategories, storeCategories, products, theme] = await Promise.all([
+  const [repairCategories, storeCategories, products, theme, banner] = await Promise.all([
     fetchActiveCategories(),
     fetchCategories(),
     fetchProducts(),
     fetchTheme(),
+    fetchPublicBanner(),
   ]);
 
   // Sections rendered in admin-defined order, honouring enable/disable.
@@ -58,6 +61,9 @@ export default async function Home() {
           logoUrl: theme.logoUrl,
         }}
       />
+      {banner.settings.enabled && (
+        <BannerCarousel slides={banner.slides} autoplaySeconds={banner.settings.autoplaySeconds} />
+      )}
       <main>
         {theme.sections.order
           .filter((key) => theme.sections.enabled[key])
