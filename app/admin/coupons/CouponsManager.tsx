@@ -32,6 +32,8 @@ export default function CouponsManager() {
   const router = useRouter();
   const toast = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [search, setSearch] = useState("");
+  const visibleCoupons = coupons.filter((c) => c.code.toLowerCase().includes(search.trim().toLowerCase()));
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,14 +154,20 @@ export default function CouponsManager() {
 
   return (
     <AdminShell
-      eyebrow="Repair catalog"
       title="Coupons"
-      lead="Create discount codes customers can apply at checkout (e.g. RPR50)."
-    >
-      <div className="admin-toolbar admin-toolbar--compact">
+      actions={
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Add coupon
         </button>
+      }
+    >
+      <div className="admin-toolbar admin-toolbar--compact">
+        <div className="admin-search">
+          <span className="admin-search__icon" aria-hidden="true">
+            🔍
+          </span>
+          <input placeholder="Search coupons…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
         <span className="form__note">{coupons.length} total</span>
       </div>
 
@@ -267,7 +275,7 @@ export default function CouponsManager() {
       <DataTable
         loading={loading}
         emptyMessage="No coupons yet — use the Add coupon button to create one."
-        rows={coupons}
+        rows={visibleCoupons}
         columns={[
           { key: "code", header: "Code" },
           {

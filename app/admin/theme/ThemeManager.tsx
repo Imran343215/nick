@@ -318,7 +318,7 @@ export default function ThemeManager() {
   }
   if (loading) {
     return (
-      <AdminShell eyebrow="Landing page" title="Theme customizer" lead="Loading the current theme…">
+      <AdminShell title="Theme customizer">
         <div className="empty-note">Loading theme settings…</div>
       </AdminShell>
     );
@@ -326,9 +326,7 @@ export default function ThemeManager() {
 
   return (
     <AdminShell
-      eyebrow="Landing page"
       title="Theme customizer"
-      lead="Full control over the landing page theme — brand, colors, fonts, section order and all copy. Changes go live the moment you save."
     >
       <div className="theme-customizer">
         <div className="admin-toolbar admin-toolbar--compact">

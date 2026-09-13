@@ -4,28 +4,48 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode } from "react";
 
-const NAV = [
-  { href: "/admin", label: "Repair bookings", exact: true },
-  { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/products", label: "Store products" },
-  { href: "/admin/repair-services", label: "Repair services" },
-  { href: "/admin/banner", label: "Banner / Carousel" },
-  { href: "/admin/sell-orders", label: "Sell orders" },
-  { href: "/admin/sell-variants", label: "Sell variants" },
-  { href: "/admin/sell-questions", label: "Sell questions" },
-  { href: "/admin/coupons", label: "Coupons" },
-  { href: "/admin/theme", label: "Theme customizer" },
+const NAV_GROUPS: { label: string; items: { href: string; label: string; exact?: boolean }[] }[] = [
+  {
+    label: "Main",
+    items: [{ href: "/admin", label: "Repair bookings", exact: true }],
+  },
+  {
+    label: "Store",
+    items: [
+      { href: "/admin/orders", label: "Orders" },
+      { href: "/admin/products", label: "Store products" },
+      { href: "/admin/coupons", label: "Coupons" },
+    ],
+  },
+  {
+    label: "Repair catalog",
+    items: [{ href: "/admin/repair-services", label: "Repair services" }],
+  },
+  {
+    label: "Sell phone",
+    items: [
+      { href: "/admin/sell-orders", label: "Sell orders" },
+      { href: "/admin/sell-variants", label: "Sell variants" },
+      { href: "/admin/sell-questions", label: "Sell questions" },
+    ],
+  },
+  {
+    label: "Site",
+    items: [
+      { href: "/admin/banner", label: "Banner / Carousel" },
+      { href: "/admin/theme", label: "Theme customizer" },
+    ],
+  },
 ];
 
 export default function AdminShell({
   title,
-  eyebrow,
-  lead,
+  actions,
   children,
 }: {
   title: string;
-  eyebrow?: string;
-  lead?: string;
+  /** Right-aligned button(s) shown next to the page title, e.g. a "+ New" button. */
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -51,27 +71,29 @@ export default function AdminShell({
             </div>
           </div>
           <nav className="admin-sidebar__nav" aria-label="Admin navigation">
-            {NAV.map((item) => {
-              const active = item.exact
-                ? pathname === item.href
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`admin-sidebar__link${active ? " admin-sidebar__link--active" : ""}`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+            {NAV_GROUPS.map((group) => (
+              <div key={group.label}>
+                <div className="admin-sidebar__group-label">{group.label}</div>
+                {group.items.map((item) => {
+                  const active = item.exact
+                    ? pathname === item.href
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`admin-sidebar__link${active ? " admin-sidebar__link--active" : ""}`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
           <div className="admin-sidebar__footer">
             <Link href="/" className="btn btn--ghost admin-sidebar__btn">
               View site
-            </Link>
-            <Link href="/repair" className="btn btn--ghost admin-sidebar__btn">
-              Repair catalog
             </Link>
             <button type="button" className="btn btn--ghost admin-sidebar__btn" onClick={logout}>
               Log out
@@ -80,10 +102,9 @@ export default function AdminShell({
         </aside>
 
         <div className="admin-shell__main">
-          <div className="section__header">
-            {eyebrow && <div className="section__eyebrow">{eyebrow}</div>}
-            <h1 className="section__title">{title}</h1>
-            {lead && <p className="section__lead">{lead}</p>}
+          <div className="admin-header">
+            <h1>{title}</h1>
+            {actions && <div className="admin-header__actions">{actions}</div>}
           </div>
           {children}
         </div>

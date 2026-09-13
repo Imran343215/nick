@@ -33,9 +33,7 @@ export default function RepairServicesAdmin({ initialTab }: { initialTab?: strin
 
   return (
     <AdminShell
-      eyebrow="Repair catalog"
       title="Repair services"
-      lead="Everything behind the repair booking flow — categories, brands, devices, service templates and per-device pricing."
     >
       <div className="repair-admin">
         <div className="admin-tabs" role="tablist" aria-label="Repair services sections">

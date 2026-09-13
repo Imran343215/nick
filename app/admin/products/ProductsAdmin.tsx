@@ -22,9 +22,7 @@ export default function ProductsAdmin({ initialTab }: { initialTab?: string }) {
 
   return (
     <AdminShell
-      eyebrow="Store management"
       title="Store products"
-      lead="List new and second-hand devices with secure Stripe checkout — manage store categories and products."
     >
       <div className="products-admin">
         <div className="admin-tabs" role="tablist" aria-label="Store products sections">

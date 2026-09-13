@@ -180,9 +180,12 @@ export default function BannerManager() {
 
   return (
     <AdminShell
-      eyebrow="Homepage"
       title="Banner / Carousel"
-      lead="A rotating image banner shown right below the header — separate from the hero section. A slide with no image is never shown."
+      actions={
+        <button type="button" className="btn btn--primary" onClick={openAdd}>
+          + Add slide
+        </button>
+      }
     >
       <div className="form-card" style={{ marginBottom: "1.5rem" }}>
         <div className="form-grid">
@@ -213,12 +216,6 @@ export default function BannerManager() {
             {savingSettings ? "Saving…" : "Save settings"}
           </button>
         </div>
-      </div>
-
-      <div className="admin-toolbar admin-toolbar--compact">
-        <button type="button" className="btn btn--primary" onClick={openAdd}>
-          + Add slide
-        </button>
       </div>
 
       {error && <div className="alert alert--error">{error}</div>}

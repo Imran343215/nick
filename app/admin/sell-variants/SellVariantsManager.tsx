@@ -28,6 +28,7 @@ export default function SellVariantsManager() {
   const [allDevices, setAllDevices] = useState<DeviceShape[]>([]);
   const [variants, setVariants] = useState<SellVariantShape[]>([]);
   const [deviceFilter, setDeviceFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,6 +78,14 @@ export default function SellVariantsManager() {
     () => (form.brand ? allDevices.filter((d) => d.brand === form.brand) : []),
     [allDevices, form.brand]
   );
+
+  const visibleVariants = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return variants;
+    return variants.filter((v) =>
+      [v.label, v.deviceName, v.brandName].filter(Boolean).join(" ").toLowerCase().includes(q)
+    );
+  }, [variants, search]);
 
   function resetForm() {
     setForm(emptyForm);
@@ -171,14 +180,24 @@ export default function SellVariantsManager() {
 
   return (
     <AdminShell
-      eyebrow="Sell phone catalog"
       title="Sell variants"
-      lead="Storage/RAM variants and their base sell price for each device — shown on the public Sell Phone page."
-    >
-      <div className="admin-toolbar admin-toolbar--compact">
+      actions={
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Add sell variant
         </button>
+      }
+    >
+      <div className="admin-toolbar admin-toolbar--compact">
+        <div className="admin-search">
+          <span className="admin-search__icon" aria-hidden="true">
+            🔍
+          </span>
+          <input
+            placeholder="Search variants…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         <div className="admin-panel__filters">
           <label className="admin-filter">
             Device{" "}
@@ -199,7 +218,7 @@ export default function SellVariantsManager() {
       <DataTable
         loading={loading}
         emptyMessage="No sell variants yet — add one so a device shows up on the Sell Phone page."
-        rows={variants}
+        rows={visibleVariants}
         columns={[
           {
             key: "device",

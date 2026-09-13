@@ -36,6 +36,16 @@ export default function SellOrdersManager() {
   const router = useRouter();
   const toast = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [search, setSearch] = useState("");
+  const visibleOrders = orders.filter((o) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return [o.customerName, o.customerEmail, o.customerPhone, o.orderNumber, o.trackingId, o.deviceName]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(q);
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -84,9 +94,7 @@ export default function SellOrdersManager() {
 
   return (
     <AdminShell
-      eyebrow="Sell phone catalog"
       title="Sell orders"
-      lead="Requests placed through the public Sell Phone flow — update status as pickup and payout progress."
     >
       {error && <div className="alert alert--error">{error}</div>}
 
@@ -123,7 +131,7 @@ export default function SellOrdersManager() {
       <DataTable
         loading={loading}
         emptyMessage="No sell requests yet."
-        rows={orders}
+        rows={visibleOrders}
         columns={[
           {
             key: "orderNumber",

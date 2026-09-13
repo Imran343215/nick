@@ -43,6 +43,10 @@ export default function SellQuestionsManager() {
   const [error, setError] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const visibleQuestions = questions.filter((q) =>
+    q.text.toLowerCase().includes(search.trim().toLowerCase())
+  );
 
   async function loadQuestions() {
     const res = await fetch("/api/admin/sell-questions");
@@ -178,14 +182,24 @@ export default function SellQuestionsManager() {
 
   return (
     <AdminShell
-      eyebrow="Sell phone catalog"
       title="Sell condition questions"
-      lead="The questionnaire customers answer to get an instant quote. Each option can deduct (or add) either a flat amount or a percentage of the variant's max price."
-    >
-      <div className="admin-toolbar admin-toolbar--compact">
+      actions={
         <button type="button" className="btn btn--primary" onClick={openAdd}>
           + Add question
         </button>
+      }
+    >
+      <div className="admin-toolbar admin-toolbar--compact">
+        <div className="admin-search">
+          <span className="admin-search__icon" aria-hidden="true">
+            🔍
+          </span>
+          <input
+            placeholder="Search questions…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       {error && <div className="alert alert--error">{error}</div>}
@@ -193,7 +207,7 @@ export default function SellQuestionsManager() {
       <DataTable
         loading={loading}
         emptyMessage="No condition questions yet — add at least one so customers can get a quote."
-        rows={questions}
+        rows={visibleQuestions}
         columns={[
           { key: "text", header: "Question" },
           {

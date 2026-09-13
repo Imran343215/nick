@@ -36,6 +36,16 @@ export default function RepairBookingsManager() {
   const router = useRouter();
   const toast = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [search, setSearch] = useState("");
+  const visibleBookings = bookings.filter((b) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return [b.customerName, b.customerEmail, b.customerPhone, b.bookingNumber, b.trackingId, b.deviceName]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(q);
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -86,9 +96,7 @@ export default function RepairBookingsManager() {
 
   return (
     <AdminShell
-      eyebrow="Repair catalog"
       title="Repair bookings"
-      lead="Bookings placed through the public repair flow — update status as jobs progress."
     >
       {error && <div className="alert alert--error">{error}</div>}
 
@@ -122,10 +130,23 @@ export default function RepairBookingsManager() {
         ]}
       />
 
+      <div className="admin-toolbar admin-toolbar--compact">
+        <div className="admin-search">
+          <span className="admin-search__icon" aria-hidden="true">
+            🔍
+          </span>
+          <input
+            placeholder="Search bookings by customer, phone, device…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
       <DataTable
         loading={loading}
         emptyMessage="No repair bookings yet."
-        rows={bookings}
+        rows={visibleBookings}
         columns={[
           {
             key: "bookingNumber",

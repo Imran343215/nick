@@ -87,9 +87,7 @@ export default function OrdersManager() {
 
   return (
     <AdminShell
-      eyebrow="Back office"
       title="Orders"
-      lead="Every store order placed through Stripe. Update fulfilment status and add the courier + tracking number, which customers see on My Orders."
     >
       <div className="admin-toolbar admin-toolbar--compact">
         <span className="form__note">{orders.length} orders</span>
