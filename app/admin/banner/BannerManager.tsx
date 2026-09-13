@@ -7,7 +7,6 @@ import DataTable from "@/components/admin/DataTable";
 import Modal from "@/components/admin/Modal";
 import { StatusPill, RowActions, IconButton, EditIcon, DeleteIcon } from "@/components/admin/Pill";
 import type { BannerSlideShape, BannerSettingsShape } from "@/lib/banner";
-import { firstError, requiredField } from "@/lib/utils";
 import { uploadCatalogImage } from "@/lib/upload";
 import { useToast } from "@/components/ui/toast";
 
@@ -27,7 +26,9 @@ export default function BannerManager() {
   const toast = useToast();
   const [slides, setSlides] = useState<BannerSlideShape[]>([]);
   const [settings, setSettings] = useState<BannerSettingsShape>({ enabled: true, autoplaySeconds: 5 });
+  const [settingsUpdatedAt, setSettingsUpdatedAt] = useState<string | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [editingConfig, setEditingConfig] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -49,6 +50,7 @@ export default function BannerManager() {
     if (res.status === 401) return router.push("/admin");
     if (!res.ok) throw new Error(data.error || "Could not load carousel settings.");
     setSettings(data.settings);
+    setSettingsUpdatedAt(data.updatedAt ?? null);
   }
 
   useEffect(() => {
@@ -57,22 +59,27 @@ export default function BannerManager() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function saveSettings() {
+  async function saveSettings(e: FormEvent) {
+    e.preventDefault();
     setSavingSettings(true);
     try {
+      const payload = {
+        enabled: settings.enabled,
+        autoplaySeconds: Number(settings.autoplaySeconds) || 5,
+      };
       const res = await fetch("/api/admin/banner-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not save settings.");
       setSettings(data.settings);
+      setSettingsUpdatedAt(data.updatedAt ?? new Date().toISOString());
+      setEditingConfig(false);
       toast.success("Carousel settings saved.");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Could not save settings.";
-      setError(message);
-      toast.error(message);
+      toast.error(err instanceof Error ? err.message : "Could not save settings.");
     } finally {
       setSavingSettings(false);
     }
@@ -124,10 +131,7 @@ export default function BannerManager() {
     event.preventDefault();
     setError("");
 
-    const validationError = firstError([
-      requiredField(form.imageUrl, "Image"),
-    ]);
-    if (validationError) {
+    if (!form.imageUrl.trim()) {
       const message = "An image is required — a slide without one will never show on the site.";
       setError(message);
       toast.error(message);
@@ -181,66 +185,167 @@ export default function BannerManager() {
 
   return (
     <AdminShell
-      title="Banner / Carousel"
-      actions={
-        <button type="button" className="btn btn--primary" onClick={openAdd}>
-          + Add slide
-        </button>
-      }
+      title="Banner"
+      description="Carousel configuration and slide management."
     >
-      <div className="form-card" style={{ marginBottom: "1.5rem" }}>
-        <div className="form-grid">
-          <div className="field">
-            <label className="order-delivery-option">
-              <input
-                type="checkbox"
-                checked={settings.enabled}
-                onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
-              />
-              Show carousel on the homepage
-            </label>
-          </div>
-          <div className="field" style={{ maxWidth: "220px" }}>
-            <label htmlFor="banner-autoplay">Auto-change every (seconds)</label>
-            <input
-              id="banner-autoplay"
-              type="number"
-              min={2}
-              max={15}
-              value={settings.autoplaySeconds}
-              onChange={(e) => setSettings({ ...settings, autoplaySeconds: Number(e.target.value) || 5 })}
-            />
-          </div>
-        </div>
-        <div className="form__actions">
-          <button type="button" className="btn btn--primary" disabled={savingSettings} onClick={saveSettings}>
-            {savingSettings ? "Saving…" : "Save settings"}
-          </button>
-        </div>
-      </div>
-
       {error && <div className="alert alert--error">{error}</div>}
 
+      {/* ===== Config Table ===== */}
+      <section className="admin-table-card">
+        <header className="admin-table-card__header">
+          <div>
+            <h2 className="admin-table-card__title">Carousel Configuration</h2>
+            <p className="admin-table-card__subtitle">
+              Carousel-wide settings that control how the homepage banner behaves.
+            </p>
+          </div>
+          {!editingConfig && (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setEditingConfig(true)}
+            >
+              Edit
+            </button>
+          )}
+        </header>
+
+        {editingConfig ? (
+          <form className="form-grid banner-config-form" onSubmit={saveSettings}>
+            <div className="field">
+              <label className="form__label">Carousel enabled</label>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={settings.enabled}
+                  onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
+                />
+                <span className="toggle__track" aria-hidden="true">
+                  <span className="toggle__thumb" />
+                </span>
+                <span className="toggle__label">
+                  {settings.enabled ? "Visible on site" : "Hidden on site"}
+                </span>
+              </label>
+            </div>
+            <div className="field">
+              <label className="form__label" htmlFor="cfg-autoplay">
+                Autoplay interval
+              </label>
+              <div className="banner-config-autoplay">
+                <input
+                  id="cfg-autoplay"
+                  type="number"
+                  min={2}
+                  max={15}
+                  value={settings.autoplaySeconds}
+                  onChange={(e) =>
+                    setSettings({ ...settings, autoplaySeconds: Number(e.target.value) || 5 })
+                  }
+                  className="form__input"
+                />
+                <span className="banner-config-autoplay__suffix">seconds per slide</span>
+              </div>
+              <p className="form__note">Between 2 and 15 seconds. Default is 5.</p>
+            </div>
+            <div className="form__actions form__actions--end">
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => setEditingConfig(false)}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn--primary btn--sm" disabled={savingSettings}>
+                {savingSettings ? "Saving…" : "Save settings"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="banner-config-view">
+            <div className="banner-config-view__row">
+              <span className="banner-config-view__label">Carousel</span>
+              <span className="banner-config-view__value">
+                <StatusPill status={settings.enabled ? "active" : "inactive"} />
+                {settings.enabled ? "Visible on site" : "Hidden on site"}
+              </span>
+            </div>
+            <div className="banner-config-view__row">
+              <span className="banner-config-view__label">Autoplay interval</span>
+              <span className="banner-config-view__value">
+                {settings.autoplaySeconds} seconds per slide
+              </span>
+            </div>
+            {settingsUpdatedAt && (
+              <p className="form__note banner-config-view__updated">
+                Last updated {new Date(settingsUpdatedAt).toLocaleString()}
+              </p>
+            )}
+          </div>
+        )}
+      </section>
+
       <DataTable
-        loading={loading}
-        emptyMessage="No slides yet — add one with an image to show the carousel on your homepage."
         rows={slides}
+        loading={loading}
+        emptyMessage="No banner slides yet. Create your first slide to get started."
         searchPlaceholder="Search slides…"
-        searchKeys={["title", "subtitle"]}
-        selectable
+        searchKeys={["title", "subtitle", "buttonLabel", "link"]}
+        exportable="banner-slides.csv"
+        toolbarActions={
+          <button type="button" className="btn btn--primary btn--sm" onClick={openAdd}>
+            + Add slide
+          </button>
+        }
         columns={[
           {
-            key: "image",
-            header: "Image",
-            hideable: false,
+            key: "preview",
+            header: "Preview",
             render: (row) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={row.imageUrl} alt={row.title ?? ""} className="catalog-admin-thumb" />
+              <img
+                src={row.imageUrl}
+                alt={row.title || "Slide"}
+                style={{ width: 80, height: 48, objectFit: "cover", borderRadius: 4 }}
+              />
             ),
           },
-          { key: "title", header: "Title", sortable: true, render: (row) => row.title || "—" },
-          { key: "status", header: "Status", sortable: true, render: (row) => <StatusPill status={row.status} /> },
-          { key: "order", header: "Order", sortable: true },
+          {
+            key: "title",
+            header: "Title",
+            sortable: true,
+            sortValue: (row) => row.title ?? "",
+          },
+          {
+            key: "subtitle",
+            header: "Subtitle",
+            sortable: true,
+            sortValue: (row) => row.subtitle ?? "",
+            render: (row) => row.subtitle || "—",
+          },
+          {
+            key: "buttonLabel",
+            header: "Button",
+            render: (row) => row.buttonLabel || "—",
+          },
+          {
+            key: "link",
+            header: "Link",
+            render: (row) => row.link || "—",
+          },
+          {
+            key: "status",
+            header: "Status",
+            sortable: true,
+            render: (row) => <StatusPill status={row.status} />,
+          },
+          {
+            key: "order",
+            header: "Order",
+            sortable: true,
+            sortValue: (row) => row.order,
+            align: "center",
+          },
         ]}
         actions={(row) => (
           <RowActions>

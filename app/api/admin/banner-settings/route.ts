@@ -13,7 +13,13 @@ export async function GET() {
   }
   try {
     const settings = await fetchBannerSettings();
-    return NextResponse.json({ ok: true, settings });
+    await connectDB();
+    const doc = await BannerSettings.findById("banner").lean().exec();
+    return NextResponse.json({
+      ok: true,
+      settings,
+      updatedAt: doc?.updatedAt ? new Date(doc.updatedAt as Date).toISOString() : null,
+    });
   } catch (err) {
     console.error("[api GET /api/admin/banner-settings]", err);
     return NextResponse.json({ ok: false, error: "Could not load carousel settings." }, { status: 500 });
@@ -42,6 +48,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({
       ok: true,
       settings: { enabled: settings.enabled !== false, autoplaySeconds: settings.autoplaySeconds },
+      updatedAt: settings.updatedAt ? new Date(settings.updatedAt as Date).toISOString() : new Date().toISOString(),
     });
   } catch (err) {
     console.error("[api PUT /api/admin/banner-settings]", err);

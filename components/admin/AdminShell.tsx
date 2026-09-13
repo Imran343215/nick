@@ -44,10 +44,13 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: s
 
 export default function AdminShell({
   title,
+  description,
   actions,
   children,
 }: {
   title: string;
+  /** Optional subtitle shown below the page title. */
+  description?: string;
   /** Right-aligned button(s) shown next to the page title, e.g. a "+ New" button. */
   actions?: ReactNode;
   children: ReactNode;
@@ -108,7 +111,10 @@ export default function AdminShell({
 
         <div className="admin-shell__main">
           <div className="admin-header">
-            <h1>{title}</h1>
+            <div>
+              <h1>{title}</h1>
+              {description && <p className="admin-header__description">{description}</p>}
+            </div>
             {actions && <div className="admin-header__actions">{actions}</div>}
           </div>
           {children}
