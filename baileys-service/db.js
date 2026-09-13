@@ -46,7 +46,36 @@ let connected = false;
 export async function connectDB() {
   if (connected) return mongoose;
   await ensureSrvResolvable();
-  await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 20000 });
+
+  // Ensure the URI has a database name. If missing, append the default db name.
+  let uri = MONGODB_URI;
+  const dbName = process.env.MONGODB_DB_NAME || "baileys";
+  // Check if URI already has a database name after the host (e.g. /dbname?params)
+  // mongodb+srv://user:pass@cluster.mongodb.net/ -> no db name
+  // mongodb+srv://user:pass@cluster.mongodb.net/baileys -> has db name
+  try {
+    const url = new URL(uri);
+    if (!url.pathname || url.pathname === "/") {
+      url.pathname = `/${dbName}`;
+      uri = url.toString();
+    }
+  } catch {
+    // If URL parsing fails, try simple string check
+    const afterHost = uri.split("/").slice(3); // ["", "dbname?params"] or ["", "?params"]
+    if (afterHost.length <= 1 || afterHost[1] === "" || afterHost[1].startsWith("?")) {
+      // No database name present
+      const separator = uri.includes("?") ? "&" : "?";
+      // Insert db name before query params
+      const qIndex = uri.indexOf("?");
+      if (qIndex === -1) {
+        uri = `${uri}/${dbName}`;
+      } else {
+        uri = `${uri.slice(0, qIndex)}/${dbName}${uri.slice(qIndex)}`;
+      }
+    }
+  }
+
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 20000 });
   connected = true;
   return mongoose;
 }
