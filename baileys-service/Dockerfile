@@ -8,6 +8,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Copy app source
+ARG CACHE_BUST=1
 COPY . .
 
 # Create auth directory for WhatsApp session
