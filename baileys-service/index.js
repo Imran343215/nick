@@ -432,7 +432,7 @@ app.get("/health", (req, res) => {
   res.json({ ok: true, status: connectionStatus });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Baileys bridge listening on port ${PORT}`);
   console.log(`To link a phone, open http://localhost:${PORT}/qr`);
 });
