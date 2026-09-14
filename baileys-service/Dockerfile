@@ -13,8 +13,8 @@ COPY . .
 # Create auth directory for WhatsApp session
 RUN mkdir -p /app/auth
 
-# Expose port (Railway sets PORT env var dynamically, default to 3001 for local)
-EXPOSE ${PORT:-3001}
+# Expose the default port (Railway overrides with $PORT at runtime)
+EXPOSE 8080
 
 # Health check - uses PORT env var to match the actual listening port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
